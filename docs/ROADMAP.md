@@ -76,3 +76,8 @@ Status: selesai (bukti: Docker MySQL healthy di port 3309; migrate:fresh --seed 
 
 - Audit SPK selesai; laporan di `docs/audit/SESI-3C-SPK-AUDIT.md`.
 - Tidak ada perubahan matriks, formula, bobot, atau persona.
+
+## Catatan Sesi 4.1
+
+- Landing page publik selesai: navigasi, hero, value proposition, career grid, cara kerja, metode SAW, FAQ, footer.
+- CTA sementara mengarah ke anchor `#cara-kerja` karena questionnaire belum tersedia.

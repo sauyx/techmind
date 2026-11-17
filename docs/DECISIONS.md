@@ -135,3 +135,7 @@ Format: `D-xx` — keputusan, opsi, rekomendasi/status.
 ## D-22 Penyetelan tiga baris matriks
 - Keputusan final: tiga baris matriks diubah (`web_developer`, `mobile_developer`, `qa_engineer`) untuk mengurangi karier yang hampir tidak pernah menang dan memisahkan web dari mobile; total tiap karier tetap 37.
 - Status: disetujui.
+
+## D-23 CTA landing sementara
+- Keputusan final: sebelum questionnaire tersedia, CTA utama landing mengarah ke anchor `#cara-kerja`, bukan route fiktif.
+- Status: disetujui.
