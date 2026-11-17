@@ -114,9 +114,9 @@ export default function ResultPage({
                             <Button type="button" variant="outline" onClick={copyLink}>
                                 {copied ? 'Link tersalin' : 'Salin Link Hasil'}
                             </Button>
-                            <Link href="/tes">
-                                <Button type="button" variant="outline">Ulangi Tes</Button>
-                            </Link>
+                            <Button asChild variant="outline">
+                                <Link href="/tes">Ulangi Tes</Link>
+                            </Button>
                         </div>
                     </section>
 
