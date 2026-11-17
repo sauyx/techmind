@@ -24,8 +24,14 @@ type Props = {
     max_total_score: number;
 };
 
-export default function CareersIndex({ careers, standard_total_score, max_total_score }: Props) {
-    const { flash } = usePage().props as { flash?: { success?: string | null } };
+export default function CareersIndex({
+    careers,
+    standard_total_score,
+    max_total_score,
+}: Props) {
+    const { flash } = usePage().props as {
+        flash?: { success?: string | null };
+    };
 
     return (
         <>
@@ -34,13 +40,21 @@ export default function CareersIndex({ careers, standard_total_score, max_total_
                 <div className="space-y-6">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                         <div>
-                            <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Karier & Matriks</h1>
-                            <p className="mt-1 text-sm text-zinc-600">
-                                Kelola daftar karier, status validasi, dan matriks skor profil kriteria.
+                            <p className="text-[11px] font-semibold tracking-[0.08em] text-brand uppercase">
+                                Referensi
+                            </p>
+                            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.025em] text-zinc-950">
+                                Karier & Matriks
+                            </h1>
+                            <p className="mt-1 text-sm leading-relaxed text-zinc-600">
+                                Kelola daftar karier, status validasi, dan
+                                matriks skor profil kriteria.
                             </p>
                         </div>
                         <Button asChild>
-                            <Link href="/admin/careers/create">Tambah Karier</Link>
+                            <Link href="/admin/careers/create">
+                                Tambah Karier
+                            </Link>
                         </Button>
                     </div>
 
@@ -50,56 +64,90 @@ export default function CareersIndex({ careers, standard_total_score, max_total_
                         </p>
                     ) : null}
 
-                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-                        Standar total skor profil karier adalah {standard_total_score} (12 kriteria x 5). Perhatikan indikator total skor saat melakukan perubahan.
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+                        Standar total skor profil karier adalah{' '}
+                        {standard_total_score} (12 kriteria x 5). Perhatikan
+                        indikator total skor saat melakukan perubahan.
                     </div>
 
-                    <section className="overflow-hidden rounded-xl border border-zinc-200 bg-white">
+                    <section className="overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03),0_1px_3px_rgba(0,0,0,0.02)]">
                         <div className="overflow-x-auto">
                             <table className="w-full min-w-[760px] text-left text-sm">
-                                <thead className="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500">
+                                <thead className="bg-zinc-50/80 text-xs tracking-wide text-zinc-500 uppercase">
                                     <tr>
-                                        <th className="px-4 py-3 font-medium">Karier</th>
-                                        <th className="px-4 py-3 font-medium">Status</th>
-                                        <th className="px-4 py-3 font-medium">Validasi</th>
-                                        <th className="px-4 py-3 font-medium">Total Skor Profil</th>
-                                        <th className="px-4 py-3 font-medium">Aksi</th>
+                                        <th className="px-4 py-3.5 font-medium">
+                                            Karier
+                                        </th>
+                                        <th className="px-4 py-3.5 font-medium">
+                                            Status
+                                        </th>
+                                        <th className="px-4 py-3.5 font-medium">
+                                            Validasi
+                                        </th>
+                                        <th className="px-4 py-3.5 font-medium">
+                                            Total Skor Profil
+                                        </th>
+                                        <th className="px-4 py-3.5 font-medium">
+                                            Aksi
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {careers.map((career) => (
-                                        <tr key={career.id} className="border-t border-zinc-100 align-top">
-                                            <td className="px-4 py-4">
-                                                <p className="font-medium text-zinc-950">{career.name}</p>
-                                                <p className="mt-1 text-xs text-zinc-500">{career.code}</p>
+                                        <tr
+                                            key={career.id}
+                                            className="border-t border-zinc-100 align-top transition-colors hover:bg-zinc-50/60"
+                                        >
+                                            <td className="px-4 py-3.5">
+                                                <p className="font-medium text-zinc-950">
+                                                    {career.name}
+                                                </p>
+                                                <p className="mt-1 text-xs text-zinc-500">
+                                                    {career.code}
+                                                </p>
                                                 {career.summary ? (
-                                                    <p className="mt-2 text-xs text-zinc-600">{career.summary}</p>
+                                                    <p className="mt-2 text-xs leading-relaxed text-zinc-600">
+                                                        {career.summary}
+                                                    </p>
                                                 ) : null}
                                             </td>
-                                            <td className="px-4 py-4">
+                                            <td className="px-4 py-3.5">
                                                 <span
-                                                    className={`rounded-md px-2 py-1 text-xs font-medium ${career.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'}`}
+                                                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${career.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'}`}
                                                 >
-                                                    {career.is_active ? 'Aktif' : 'Nonaktif'}
+                                                    {career.is_active
+                                                        ? 'Aktif'
+                                                        : 'Nonaktif'}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-4">
+                                            <td className="px-4 py-3.5">
                                                 <span
-                                                    className={`rounded-md px-2 py-1 text-xs font-medium ${career.is_validated ? 'bg-brand/10 text-brand' : 'bg-zinc-100 text-zinc-500'}`}
+                                                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${career.is_validated ? 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-600/15 ring-inset' : 'bg-zinc-100 text-zinc-500'}`}
                                                 >
-                                                    {career.is_validated ? 'Tervalidasi' : 'Belum Tervalidasi'}
+                                                    {career.is_validated
+                                                        ? 'Tervalidasi'
+                                                        : 'Belum Tervalidasi'}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-4">
+                                            <td className="px-4 py-3.5">
                                                 <span
-                                                    className={`rounded-md px-2 py-1 text-xs font-medium ${career.total_score === standard_total_score ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}
+                                                    className={`rounded-full px-2.5 py-1 text-xs font-medium tabular-nums ${career.total_score === standard_total_score ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}
                                                 >
-                                                    <span className="tabular-nums">{career.total_score} / {max_total_score}</span>
+                                                    {career.total_score} /{' '}
+                                                    {max_total_score}
                                                 </span>
                                             </td>
-                                            <td className="px-4 py-4">
-                                                <Button asChild variant="outline" size="sm">
-                                                    <Link href={`/admin/careers/${career.id}/edit`}>Edit</Link>
+                                            <td className="px-4 py-3.5">
+                                                <Button
+                                                    asChild
+                                                    variant="outline"
+                                                    size="sm"
+                                                >
+                                                    <Link
+                                                        href={`/admin/careers/${career.id}/edit`}
+                                                    >
+                                                        Edit
+                                                    </Link>
                                                 </Button>
                                             </td>
                                         </tr>

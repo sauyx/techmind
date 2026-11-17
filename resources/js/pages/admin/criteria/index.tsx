@@ -25,7 +25,9 @@ const stepTitles: Record<number, string> = {
 };
 
 export default function CriteriaIndex({ criteria }: Props) {
-    const { flash } = usePage().props as { flash?: { success?: string | null } };
+    const { flash } = usePage().props as {
+        flash?: { success?: string | null };
+    };
     const groups = [1, 2, 3].map((step) => ({
         step,
         title: stepTitles[step],
@@ -38,9 +40,15 @@ export default function CriteriaIndex({ criteria }: Props) {
             <AdminLayout>
                 <div className="space-y-6">
                     <div>
-                        <h1 className="text-2xl font-semibold tracking-tight text-zinc-950">Kriteria & Bobot</h1>
-                        <p className="mt-1 text-sm text-zinc-600">
-                            Kelola 12 kriteria penilaian dan pengali bobot untuk perhitungan SAW.
+                        <p className="text-[11px] font-semibold tracking-[0.08em] text-brand uppercase">
+                            Konfigurasi
+                        </p>
+                        <h1 className="mt-2 text-2xl font-semibold tracking-[-0.025em] text-zinc-950">
+                            Kriteria & Bobot
+                        </h1>
+                        <p className="mt-1 text-sm leading-relaxed text-zinc-600">
+                            Kelola 12 kriteria penilaian dan pengali bobot untuk
+                            perhitungan SAW.
                         </p>
                     </div>
 
@@ -50,21 +58,33 @@ export default function CriteriaIndex({ criteria }: Props) {
                         </p>
                     ) : null}
 
-                    <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-                        Perubahan bobot dan kriteria hanya berlaku untuk sesi tes baru. Hasil tes pengunjung sebelumnya tetap tersimpan sesuai snapshot.
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
+                        Perubahan bobot dan kriteria hanya berlaku untuk sesi
+                        tes baru. Hasil tes pengunjung sebelumnya tetap
+                        tersimpan sesuai snapshot.
                     </div>
 
                     {groups.map((group) => (
-                        <section key={group.step} className="rounded-xl border border-zinc-200 bg-white">
-                            <div className="border-b border-zinc-200 px-4 py-3 sm:px-6">
-                                <h2 className="text-base font-semibold text-zinc-950">
-                                    Langkah {group.step}: {group.title}
-                                </h2>
-                                <p className="text-xs text-zinc-500">{group.items.length} kriteria</p>
+                        <section
+                            key={group.step}
+                            className="overflow-hidden rounded-xl border border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.03),0_1px_3px_rgba(0,0,0,0.02)]"
+                        >
+                            <div className="border-b border-zinc-200/80 bg-zinc-50/60 px-4 py-3 sm:px-6">
+                                <div className="flex items-center justify-between gap-3">
+                                    <h2 className="text-sm font-semibold tracking-[-0.015em] text-zinc-950">
+                                        Langkah {group.step}: {group.title}
+                                    </h2>
+                                    <span className="rounded-full border border-zinc-200/80 bg-white px-2 py-0.5 text-[11px] font-semibold text-zinc-500 tabular-nums">
+                                        {group.items.length} kriteria
+                                    </span>
+                                </div>
                             </div>
                             <div className="divide-y divide-zinc-100">
                                 {group.items.map((criterion) => (
-                                    <CriterionRow key={criterion.id} criterion={criterion} />
+                                    <CriterionRow
+                                        key={criterion.id}
+                                        criterion={criterion}
+                                    />
                                 ))}
                             </div>
                         </section>
@@ -97,25 +117,46 @@ function CriterionRow({ criterion }: { criterion: Criterion }) {
 
     if (!editing) {
         return (
-            <div className="flex flex-col gap-3 px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+            <div className="flex flex-col gap-3 px-4 py-3.5 transition-colors hover:bg-zinc-50/60 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-medium text-zinc-950">{criterion.name}</p>
-                        <span className="rounded-md border border-zinc-200 px-2 py-0.5 text-[11px] text-zinc-500">
+                        <p className="text-sm font-medium text-zinc-950">
+                            {criterion.name}
+                        </p>
+                        <span className="rounded-md border border-zinc-200/80 bg-zinc-50 px-2 py-0.5 text-[11px] text-zinc-500">
                             {criterion.code}
                         </span>
                         <span
-                            className={`rounded-md px-2 py-0.5 text-[11px] font-medium ${criterion.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'}`}
+                            className={`rounded-full px-2 py-0.5 text-[11px] font-medium ${criterion.is_active ? 'bg-emerald-50 text-emerald-700' : 'bg-zinc-100 text-zinc-500'}`}
                         >
                             {criterion.is_active ? 'Aktif' : 'Nonaktif'}
                         </span>
                     </div>
-                    <p className="mt-1 text-sm text-zinc-600">{criterion.description || 'Tanpa deskripsi.'}</p>
-                    <p className="mt-1 text-xs text-zinc-500">
-                        Bobot x<span className="tabular-nums">{criterion.weight.toFixed(2)}</span> | Urutan <span className="tabular-nums">{criterion.display_order}</span>
+                    <p className="mt-1 text-sm leading-relaxed text-zinc-600">
+                        {criterion.description || 'Tanpa deskripsi.'}
+                    </p>
+                    <p className="mt-1 flex flex-wrap items-center gap-3 text-xs text-zinc-500">
+                        <span>
+                            Bobot{' '}
+                            <span className="font-semibold text-zinc-700 tabular-nums">
+                                x{criterion.weight.toFixed(2)}
+                            </span>
+                        </span>
+                        <span className="text-zinc-300">|</span>
+                        <span>
+                            Urutan{' '}
+                            <span className="font-semibold text-zinc-700 tabular-nums">
+                                {criterion.display_order}
+                            </span>
+                        </span>
                     </p>
                 </div>
-                <Button type="button" variant="outline" onClick={() => setEditing(true)}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditing(true)}
+                    className="shrink-0"
+                >
                     Edit
                 </Button>
             </div>
@@ -126,19 +167,31 @@ function CriterionRow({ criterion }: { criterion: Criterion }) {
         <form onSubmit={submit} className="space-y-4 px-4 py-4 sm:px-6">
             <div className="grid gap-4 sm:grid-cols-2">
                 <div>
-                    <label className="text-sm font-medium text-zinc-950" htmlFor={`name-${criterion.id}`}>
+                    <label
+                        className="text-sm font-medium text-zinc-950"
+                        htmlFor={`name-${criterion.id}`}
+                    >
                         Nama kriteria
                     </label>
                     <input
                         id={`name-${criterion.id}`}
                         value={form.data.name}
-                        onChange={(event) => form.setData('name', event.target.value)}
+                        onChange={(event) =>
+                            form.setData('name', event.target.value)
+                        }
                         className="mt-1 h-10 w-full rounded-lg border border-zinc-300 px-3 text-sm text-zinc-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                     />
-                    {form.errors.name ? <p className="mt-1 text-xs text-red-600">{form.errors.name}</p> : null}
+                    {form.errors.name ? (
+                        <p className="mt-1 text-xs text-red-600">
+                            {form.errors.name}
+                        </p>
+                    ) : null}
                 </div>
                 <div>
-                    <label className="text-sm font-medium text-zinc-950" htmlFor={`weight-${criterion.id}`}>
+                    <label
+                        className="text-sm font-medium text-zinc-950"
+                        htmlFor={`weight-${criterion.id}`}
+                    >
                         Pengali bobot (0.50 - 2.00)
                     </label>
                     <input
@@ -148,38 +201,59 @@ function CriterionRow({ criterion }: { criterion: Criterion }) {
                         max={2}
                         step={0.05}
                         value={form.data.weight}
-                        onChange={(event) => form.setData('weight', Number(event.target.value))}
+                        onChange={(event) =>
+                            form.setData('weight', Number(event.target.value))
+                        }
                         className="mt-1 h-10 w-full rounded-lg border border-zinc-300 px-3 text-sm text-zinc-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                     />
-                    {form.errors.weight ? <p className="mt-1 text-xs text-red-600">{form.errors.weight}</p> : null}
+                    {form.errors.weight ? (
+                        <p className="mt-1 text-xs text-red-600">
+                            {form.errors.weight}
+                        </p>
+                    ) : null}
                 </div>
             </div>
 
             <div>
-                <label className="text-sm font-medium text-zinc-950" htmlFor={`description-${criterion.id}`}>
+                <label
+                    className="text-sm font-medium text-zinc-950"
+                    htmlFor={`description-${criterion.id}`}
+                >
                     Deskripsi
                 </label>
                 <textarea
                     id={`description-${criterion.id}`}
                     rows={2}
                     value={form.data.description}
-                    onChange={(event) => form.setData('description', event.target.value)}
+                    onChange={(event) =>
+                        form.setData('description', event.target.value)
+                    }
                     className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                 />
                 {form.errors.description ? (
-                    <p className="mt-1 text-xs text-red-600">{form.errors.description}</p>
+                    <p className="mt-1 text-xs text-red-600">
+                        {form.errors.description}
+                    </p>
                 ) : null}
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
                 <div>
-                    <label className="text-sm font-medium text-zinc-950" htmlFor={`step-${criterion.id}`}>
+                    <label
+                        className="text-sm font-medium text-zinc-950"
+                        htmlFor={`step-${criterion.id}`}
+                    >
                         Langkah
                     </label>
                     <select
                         id={`step-${criterion.id}`}
                         value={form.data.step_group}
-                        onChange={(event) => form.setData('step_group', Number(event.target.value))}
+                        onChange={(event) =>
+                            form.setData(
+                                'step_group',
+                                Number(event.target.value),
+                            )
+                        }
                         className="mt-1 h-10 w-full rounded-lg border border-zinc-300 px-3 text-sm text-zinc-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                     >
                         <option value={1}>Langkah 1</option>
@@ -187,11 +261,16 @@ function CriterionRow({ criterion }: { criterion: Criterion }) {
                         <option value={3}>Langkah 3</option>
                     </select>
                     {form.errors.step_group ? (
-                        <p className="mt-1 text-xs text-red-600">{form.errors.step_group}</p>
+                        <p className="mt-1 text-xs text-red-600">
+                            {form.errors.step_group}
+                        </p>
                     ) : null}
                 </div>
                 <div>
-                    <label className="text-sm font-medium text-zinc-950" htmlFor={`order-${criterion.id}`}>
+                    <label
+                        className="text-sm font-medium text-zinc-950"
+                        htmlFor={`order-${criterion.id}`}
+                    >
                         Urutan tampil
                     </label>
                     <input
@@ -199,18 +278,27 @@ function CriterionRow({ criterion }: { criterion: Criterion }) {
                         type="number"
                         min={0}
                         value={form.data.display_order}
-                        onChange={(event) => form.setData('display_order', Number(event.target.value))}
+                        onChange={(event) =>
+                            form.setData(
+                                'display_order',
+                                Number(event.target.value),
+                            )
+                        }
                         className="mt-1 h-10 w-full rounded-lg border border-zinc-300 px-3 text-sm text-zinc-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
                     />
                     {form.errors.display_order ? (
-                        <p className="mt-1 text-xs text-red-600">{form.errors.display_order}</p>
+                        <p className="mt-1 text-xs text-red-600">
+                            {form.errors.display_order}
+                        </p>
                     ) : null}
                 </div>
                 <label className="flex items-center gap-2 self-end pb-2 text-sm font-medium text-zinc-950">
                     <input
                         type="checkbox"
                         checked={form.data.is_active}
-                        onChange={(event) => form.setData('is_active', event.target.checked)}
+                        onChange={(event) =>
+                            form.setData('is_active', event.target.checked)
+                        }
                         className="size-4 rounded border-zinc-300 text-brand focus:ring-brand"
                     />
                     Kriteria aktif
@@ -221,7 +309,11 @@ function CriterionRow({ criterion }: { criterion: Criterion }) {
                 <Button type="submit" disabled={form.processing}>
                     {form.processing ? 'Menyimpan...' : 'Simpan perubahan'}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setEditing(false)}>
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditing(false)}
+                >
                     Batal
                 </Button>
             </div>
