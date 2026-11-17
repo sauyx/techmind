@@ -3,6 +3,8 @@
 Maksimal 8 sesi implementasi. Setiap sesi memiliki tujuan, file yang disentuh, kriteria selesai, dan test wajib.
 
 ## Sesi 1 — Fondasi Proyek
+
+Status: selesai (bukti: Docker MySQL healthy di port 3309; migrate:fresh --seed sukses; composer ci:check lulus: 43 passed, 2 skipped; npm run build sukses).
 - Tujuan: inisialisasi Laravel 13 + Inertia React TS + Tailwind + Pest; konfigurasi dasar.
 - File: `composer.json`, `package.json`, `vite.config.*`, `tailwind.config.*`, `phpunit.xml`, `.env.example`.
 - Kriteria selesai: `php artisan serve` dan `npm run dev` jalan; route `/` menampilkan halaman Inertia.
