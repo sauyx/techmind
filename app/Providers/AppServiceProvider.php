@@ -2,49 +2,25 @@
 
 namespace App\Providers;
 
-use Carbon\CarbonImmutable;
-use Illuminate\Support\Facades\Date;
-use Illuminate\Support\Facades\DB;
+use App\Contracts\CareerProfileRepository as CareerProfileRepositoryContract;
+use App\Contracts\CareerRepository as CareerRepositoryContract;
+use App\Contracts\CriterionRepository as CriterionRepositoryContract;
+use App\Repositories\CareerProfileRepository;
+use App\Repositories\CareerRepository;
+use App\Repositories\CriterionRepository;
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Validation\Rules\Password;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
+        $this->app->bind(CriterionRepositoryContract::class, CriterionRepository::class);
+        $this->app->bind(CareerRepositoryContract::class, CareerRepository::class);
+        $this->app->bind(CareerProfileRepositoryContract::class, CareerProfileRepository::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        $this->configureDefaults();
-    }
-
-    /**
-     * Configure default behaviors for production-ready applications.
-     */
-    protected function configureDefaults(): void
-    {
-        Date::use(CarbonImmutable::class);
-
-        DB::prohibitDestructiveCommands(
-            app()->isProduction(),
-        );
-
-        Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
-                ->mixedCase()
-                ->letters()
-                ->numbers()
-                ->symbols()
-                ->uncompromised()
-            : null,
-        );
+        //
     }
 }
