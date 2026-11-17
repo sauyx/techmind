@@ -36,6 +36,7 @@ class RecommendationService
 
             return [
                 'code' => (string) $career->code,
+                'name' => (string) $career->name,
                 'sort_order' => (int) $career->sort_order,
                 'scores' => $scores,
             ];

@@ -243,3 +243,12 @@ Tabel hasil tes (`test_sessions`, `test_answers`, `test_results`, `visitor_feedb
 - `careers` memakai `code` (unik), `summary`, `description`, `skills`, `tools`, `roadmap` (JSON), `is_active`, `is_validated`, `source_note`.
 - `career_profiles.score` dibatasi 1-5 melalui CHECK constraint (MySQL) atau trigger (SQLite).
 - `career_profiles` memiliki unique (`career_id`, `criterion_id`) dan foreign key cascade.
+
+## 7. Status Implementasi Sesi 4.2
+
+Tabel yang ditambahkan:
+- `test_sessions` (token UUID, nama opsional, status, timestamps)
+- `test_answers` (snapshot kriteria, rating 1-5, weight snapshot)
+- `test_results` (ranking JSON, karier teratas, method code)
+
+`visitor_feedbacks` dan `ai_explanations` masih ditunda.

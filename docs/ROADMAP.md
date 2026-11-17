@@ -81,3 +81,9 @@ Status: selesai (bukti: Docker MySQL healthy di port 3309; migrate:fresh --seed 
 
 - Landing page publik selesai: navigasi, hero, value proposition, career grid, cara kerja, metode SAW, FAQ, footer.
 - CTA sementara mengarah ke anchor `#cara-kerja` karena questionnaire belum tersedia.
+
+## Catatan Sesi 4.2
+
+- Alur tes publik selesai: mulai sesi anonim, kuesioner 3 langkah, submit jawaban, snapshot jawaban dan hasil.
+- Halaman hasil selesai: ranking 10 karier, radar profil, gap analysis, penjelasan template, detail karier.
+- Belum: ekspor PDF, feedback pengunjung, integrasi AI nyata, admin CRUD.

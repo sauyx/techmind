@@ -117,6 +117,7 @@ class SawCalculator
             $careerCode = (string) $career['code'];
             $rankingItems[] = [
                 'career_code' => $careerCode,
+                'career_name' => (string) ($career['name'] ?? $careerCode),
                 'sort_order' => (int) ($career['sort_order'] ?? 0),
                 'score' => $scores[$careerCode],
                 'display_score' => round($scores[$careerCode] * 100, 1),
