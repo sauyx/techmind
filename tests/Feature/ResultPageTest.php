@@ -42,7 +42,7 @@ class ResultPageTest extends TestCase
             ->has('criteria', 12)
             ->has('careers', 10)
             ->has('ratings')
-            ->has('explanation')
+            ->has('ai_explanation')
             ->has('results.0.gap_summary')
         );
     }

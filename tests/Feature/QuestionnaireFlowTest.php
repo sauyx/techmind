@@ -137,7 +137,7 @@ class QuestionnaireFlowTest extends TestCase
             ->has('results', 10)
             ->has('criteria', 12)
             ->has('careers', 10)
-            ->has('explanation')
+            ->has('ai_explanation')
         );
     }
 
