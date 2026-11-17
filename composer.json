@@ -93,6 +93,11 @@
         ],
         "pre-package-uninstall": [
             "Illuminate\\Foundation\\ComposerScripts::prePackageUninstall"
+        ],
+        "test:mysql": "vendor/bin/pest --configuration=phpunit.mysql.xml --group=mysql",
+        "ci:check:full": [
+            "@composer ci:check",
+            "@composer test:mysql"
         ]
     },
     "extra": {
