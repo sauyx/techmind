@@ -98,7 +98,8 @@
         "ci:check:full": [
             "@composer ci:check",
             "@composer test:mysql"
-        ]
+        ],
+        "test:fairness": "vendor/bin/pest --group=fairness"
     },
     "extra": {
         "laravel": {
