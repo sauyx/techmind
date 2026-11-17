@@ -1,11 +1,10 @@
 import { createInertiaApp } from '@inertiajs/react';
 import { Toaster } from '@/components/ui/sonner';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { initializeTheme } from '@/hooks/use-appearance';
 import AppLayout from '@/layouts/app-layout';
 import AuthLayout from '@/layouts/auth-layout';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'TechMind';
 
 void createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -15,6 +14,10 @@ void createInertiaApp({
                 return null;
             case name.startsWith('auth/'):
                 return AuthLayout;
+            case name.startsWith('admin/'):
+                return null;
+            case name.startsWith('public/'):
+                return null;
             default:
                 return AppLayout;
         }
@@ -29,9 +32,6 @@ void createInertiaApp({
         );
     },
     progress: {
-        color: '#4B5563',
+        color: '#4F46E5',
     },
 });
-
-// This will set light / dark mode on load...
-initializeTheme();
