@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BoothController;
 use App\Http\Controllers\Admin\CareerController;
 use App\Http\Controllers\Admin\CriterionController;
 use App\Http\Controllers\Admin\DashboardController;
@@ -41,6 +42,8 @@ Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.'
     Route::put('/careers/{career}', [CareerController::class, 'update'])->name('careers.update');
 
     Route::get('/feedbacks/export', [FeedbackExportController::class, 'export'])->name('feedbacks.export');
+
+    Route::get('/booth', [BoothController::class, 'index'])->name('booth');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

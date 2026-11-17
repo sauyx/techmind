@@ -5,6 +5,7 @@ import {
     LayoutDashboard,
     LogOut,
     Menu,
+    QrCode,
     SlidersHorizontal,
     X,
 } from 'lucide-react';
@@ -15,6 +16,7 @@ const navigation = [
     { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
     { href: '/admin/criteria', label: 'Kriteria & Bobot', icon: SlidersHorizontal, exact: false },
     { href: '/admin/careers', label: 'Karier & Matriks', icon: Briefcase, exact: false },
+    { href: '/admin/booth', label: 'QR & Booth', icon: QrCode, exact: false },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
