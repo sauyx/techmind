@@ -8,7 +8,7 @@ use App\Http\Controllers\Public\ResultController;
 use App\Http\Controllers\Public\TestController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'welcome')->name('home');
+Route::inertia('/', 'public/landing')->name('home');
 
 Route::get('/tes', [TestController::class, 'create'])
     ->name('tests.create');

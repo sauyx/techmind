@@ -71,6 +71,15 @@ export default function PublicTest({ criteria }: Props) {
                         Jawab setiap pernyataan sesuai dengan dirimu. Tidak ada jawaban benar atau salah.
                     </p>
 
+                    {criteria.length === 0 ? (
+                        <div
+                            role="alert"
+                            className="mt-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900"
+                        >
+                            Kriteria tes belum tersedia. Hubungi admin TechMind agar kuesioner dapat diaktifkan.
+                        </div>
+                    ) : (
+                        <>
                     <div className="mt-6 rounded-xl border border-zinc-200 bg-white p-4">
                         <label className="text-sm font-medium text-zinc-950" htmlFor="visitor_name">
                             Nama Panggilan
@@ -148,6 +157,8 @@ export default function PublicTest({ criteria }: Props) {
                             </Button>
                         )}
                     </div>
+                        </>
+                    )}
                 </div>
             </PublicLayout>
         </>

@@ -20,6 +20,16 @@ class QuestionnaireFlowTest extends TestCase
         $this->seed(ReferenceDataSeeder::class);
     }
 
+    public function test_landing_page_renders_public_landing_component(): void
+    {
+        $response = $this->get('/');
+
+        $response->assertOk();
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('public/landing')
+        );
+    }
+
     public function test_tes_page_returns_200_with_12_criteria_in_3_groups(): void
     {
         $response = $this->get('/tes');
@@ -28,7 +38,49 @@ class QuestionnaireFlowTest extends TestCase
         $response->assertInertia(fn (AssertableInertia $page) => $page
             ->component('public/test')
             ->has('criteria', 12)
+            ->where('criteria.0.step_group', 1)
+            ->where('criteria.3.step_group', 1)
+            ->where('criteria.4.step_group', 2)
+            ->where('criteria.7.step_group', 2)
+            ->where('criteria.8.step_group', 3)
+            ->where('criteria.11.step_group', 3)
+            ->has('criteria.0.code')
+            ->has('criteria.0.display_order')
         );
+    }
+
+    public function test_complete_flow_from_landing_to_result_page(): void
+    {
+        $this->get('/')->assertOk();
+        $this->get('/tes')->assertOk();
+
+        $response = $this->post('/tes', [
+            'visitor_name' => 'Budi',
+            'ratings' => $this->validRatings(),
+        ]);
+
+        $session = TestSession::firstOrFail();
+
+        $response->assertRedirect(route('results.show', $session->token));
+
+        $this->get('/hasil/'.$session->token)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('public/result')
+                ->has('results', 10)
+            );
+    }
+
+    public function test_tes_page_handles_no_active_criteria_gracefully(): void
+    {
+        Criterion::query()->update(['is_active' => false]);
+
+        $this->get('/tes')
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('public/test')
+                ->has('criteria', 0)
+            );
     }
 
     public function test_valid_submission_stores_session_answers_and_results(): void

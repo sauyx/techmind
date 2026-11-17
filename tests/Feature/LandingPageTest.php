@@ -15,10 +15,10 @@ class LandingPageTest extends TestCase
         $this->get('/')->assertOk();
     }
 
-    public function test_landing_page_renders_welcome_inertia_component(): void
+    public function test_landing_page_renders_public_landing_component(): void
     {
         $this->get('/')
-            ->assertInertia(fn (AssertableInertia $page) => $page->component('welcome'));
+            ->assertInertia(fn (AssertableInertia $page) => $page->component('public/landing'));
     }
 
     public function test_landing_page_contains_main_content(): void

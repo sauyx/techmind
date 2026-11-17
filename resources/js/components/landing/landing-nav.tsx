@@ -40,8 +40,6 @@ export function LandingNav() {
                 <div className="hidden md:block">
                     <Link
                         href="/tes"
-                        method="post"
-                        as="button"
                         className="inline-flex h-9 items-center justify-center rounded-lg bg-brand px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                     >
                         Mulai Tes Sekarang
@@ -81,8 +79,6 @@ export function LandingNav() {
                         ))}
                         <Link
                             href="/tes"
-                            method="post"
-                            as="button"
                             className="mt-2 inline-flex h-9 items-center justify-center rounded-lg bg-brand px-4 text-sm font-medium text-white"
                             onClick={() => setOpen(false)}
                         >
