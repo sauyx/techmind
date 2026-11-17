@@ -65,4 +65,18 @@ Akses `http://localhost:8000`. Login admin di `http://localhost:8000/login`.
 composer ci:check
 ```
 
-Perintah ini menjalankan Pint, TypeScript (`tsc --noEmit`), build Vite, dan Pest.
+Perintah ini menjalankan Pint, TypeScript (`tsc --noEmit`), build Vite, dan Pest (SQLite).
+
+Tes terhadap MySQL 8.4:
+
+```bash
+composer test:mysql
+```
+
+Gabungan:
+
+```bash
+composer ci:check:full
+```
+
+Container init script membuat database `techmind_test` untuk pengujian MySQL.

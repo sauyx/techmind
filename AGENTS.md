@@ -69,3 +69,7 @@ Setiap sesi kerja harus melaporkan:
 - Menginstall dependensi tanpa kebutuhan jelas.
 - Mengklaim selesai tanpa bukti.
 - Menyimpan secret di repo.
+
+## 10. Konflik Instruksi
+
+Jika instruksi sesi bertentangan dengan stack atau keputusan yang disetujui, atau starter kit memaksa penyimpangan, BERHENTI dan laporkan opsi. Dalam laporan, jangan menulis "sesuai keputusan" kecuali keputusan itu tertulis; sebut ID D-xx.

@@ -226,3 +226,20 @@ erDiagram
 - Simpan `ip_hash` (SHA-256 + salt app), bukan IP mentah.
 - Email pengunjung opsional; jika disimpan, tampilkan kebijakan privasi.
 - Retensi data tes: default 90 hari (dapat diubah admin) untuk demo; feedback dapat disimpan lebih lama.
+
+## 5. Status Implementasi Sesi 2
+
+Tabel yang diimplementasikan pada Sesi 2:
+- `users` (termasuk `is_admin`)
+- `criteria`
+- `careers`
+- `career_profiles`
+
+Tabel hasil tes (`test_sessions`, `test_answers`, `test_results`, `visitor_feedbacks`, `ai_explanations`) ditunda ke sesi pemakainya; migrasi spekulatif tidak dibuat.
+
+## 6. Perubahan Skema (Sesi 2)
+
+- `criteria` memakai `code` (unik), `display_order`, `step_group`, `weight`, `is_active`.
+- `careers` memakai `code` (unik), `summary`, `description`, `skills`, `tools`, `roadmap` (JSON), `is_active`, `is_validated`, `source_note`.
+- `career_profiles.score` dibatasi 1-5 melalui CHECK constraint (MySQL) atau trigger (SQLite).
+- `career_profiles` memiliki unique (`career_id`, `criterion_id`) dan foreign key cascade.

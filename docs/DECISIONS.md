@@ -111,3 +111,11 @@ Format: `D-xx` — keputusan, opsi, rekomendasi/status.
 - Kualitas data bobot/profil: tandai belum tervalidasi; admin dapat menyesuaikan; snapshot menjaga histori.
 - Perbedaan MySQL 8.4 vs MariaDB 10.11: gunakan Docker MySQL atau uji kompatibilitas.
 - Scope creep pada sesi demo: batasi fitur sesuai ruang lingkup v1.
+
+## D-17 Tailwind CSS 4
+- Keputusan final: gunakan Tailwind CSS 4 bawaan starter kit resmi Laravel 13.
+- Status: disetujui.
+
+## D-18 Satu jenis akun (admin)
+- Keputusan final: aplikasi hanya memiliki akun admin; fitur Fortify yang tidak dipakai (registrasi, reset password, verifikasi email, 2FA, passkey, settings profil) dinonaktifkan, kecuali login dan logout.
+- Status: disetujui.
