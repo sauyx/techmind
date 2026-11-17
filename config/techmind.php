@@ -8,4 +8,5 @@ return [
         'model' => env('AI_MODEL', 'gpt-4o-mini'),
         'timeout' => (int) env('AI_TIMEOUT', 6),
     ],
+    'demo_mode' => env('TECHMIND_DEMO_MODE', false),
 ];
