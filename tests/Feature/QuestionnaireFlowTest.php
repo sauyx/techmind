@@ -2,7 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Models\TestResult;
+use App\Models\CareerProfile;
+use App\Models\Criterion;
 use App\Models\TestSession;
 use Database\Seeders\ReferenceDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -19,114 +20,133 @@ class QuestionnaireFlowTest extends TestCase
         $this->seed(ReferenceDataSeeder::class);
     }
 
-    public function test_can_start_anonymous_test_session(): void
+    public function test_tes_page_returns_200_with_12_criteria_in_3_groups(): void
     {
-        $response = $this->post('/tests', [
+        $response = $this->get('/tes');
+
+        $response->assertOk();
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('public/test')
+            ->has('criteria', 12)
+        );
+    }
+
+    public function test_valid_submission_stores_session_answers_and_results(): void
+    {
+        $ratings = $this->validRatings();
+
+        $response = $this->post('/tes', [
             'visitor_name' => 'Budi',
+            'ratings' => $ratings,
         ]);
 
         $session = TestSession::first();
 
         $this->assertNotNull($session);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/', $session->token);
         $this->assertSame('Budi', $session->visitor_name);
-        $this->assertSame('in_progress', $session->status);
-        $response->assertRedirect(route('tests.show', $session->token));
+        $this->assertNotNull($session->completed_at);
+
+        $this->assertSame(12, $session->answers()->count());
+        $this->assertSame(10, $session->results()->count());
+
+        $response->assertRedirect(route('results.show', $session->token));
     }
 
-    public function test_can_view_questionnaire_step(): void
+    public function test_snapshot_is_isolated_from_later_admin_changes(): void
     {
-        $session = TestSession::factory()->create([
+        $ratings = $this->validRatings();
+
+        $this->post('/tes', [
             'visitor_name' => 'Ani',
-            'token' => 'test-token-123',
-        ]);
-
-        $response = $this->get('/tests/test-token-123');
-
-        $response->assertOk();
-        $response->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('test/show')
-            ->where('session.token', 'test-token-123')
-            ->has('criteria', 12)
-        );
-    }
-
-    public function test_submitting_answers_calculates_and_redirects_to_results(): void
-    {
-        $session = TestSession::factory()->create([
-            'token' => 'test-token-456',
-        ]);
-
-        $ratings = [
-            'logic_problem_solving' => 5,
-            'data_analysis' => 3,
-            'math_statistics' => 3,
-            'attention_detail' => 4,
-            'visual_design' => 1,
-            'creativity' => 2,
-            'user_empathy' => 1,
-            'communication' => 2,
-            'coding' => 5,
-            'network_infra' => 4,
-            'security_awareness' => 4,
-            'business_process' => 3,
-        ];
-
-        $response = $this->post('/tests/test-token-456/answers', [
             'ratings' => $ratings,
         ]);
 
-        $response->assertRedirect(route('results.show', 'test-token-456'));
+        $session = TestSession::first();
+        $storedScore = (float) $session->results()->first()->saw_score;
 
-        $this->assertDatabaseHas('test_sessions', [
-            'token' => 'test-token-456',
-            'status' => 'completed',
-        ]);
+        Criterion::query()->first()->update(['weight' => 2.00]);
+        CareerProfile::query()->first()->update(['score' => 1]);
 
-        $this->assertDatabaseHas('test_answers', [
-            'test_session_id' => $session->id,
-            'criterion_code' => 'coding',
-            'rating' => 5,
-        ]);
+        $freshSession = TestSession::query()->where('token', $session->token)->first();
+        $freshScore = (float) $freshSession->results()->first()->saw_score;
 
-        $result = TestResult::where('test_session_id', $session->id)->first();
-        $this->assertNotNull($result);
-        $this->assertSame('backend_developer', $result->top_career_code);
+        $this->assertSame($storedScore, $freshScore);
     }
 
-    public function test_can_view_result_page(): void
+    public function test_submission_rejected_when_a_criterion_is_missing(): void
     {
-        $session = TestSession::factory()->create([
-            'token' => 'test-token-789',
-        ]);
+        $ratings = $this->validRatings();
+        unset($ratings['coding']);
 
-        $ratings = [
-            'logic_problem_solving' => 4,
-            'data_analysis' => 5,
-            'math_statistics' => 5,
-            'attention_detail' => 4,
-            'visual_design' => 2,
-            'creativity' => 2,
-            'user_empathy' => 2,
-            'communication' => 4,
-            'coding' => 3,
-            'network_infra' => 1,
-            'security_awareness' => 2,
-            'business_process' => 3,
-        ];
+        $this->from('/tes')
+            ->post('/tes', [
+                'visitor_name' => 'Budi',
+                'ratings' => $ratings,
+            ])
+            ->assertRedirect('/tes')
+            ->assertSessionHasErrors('ratings');
+    }
 
-        $this->post('/tests/test-token-789/answers', [
+    public function test_submission_rejected_when_rating_is_out_of_range(): void
+    {
+        $ratings = $this->validRatings();
+        $ratings['coding'] = 6;
+
+        $this->from('/tes')
+            ->post('/tes', [
+                'visitor_name' => 'Budi',
+                'ratings' => $ratings,
+            ])
+            ->assertRedirect('/tes')
+            ->assertSessionHasErrors('ratings.coding');
+    }
+
+    public function test_submission_rejected_when_all_ratings_are_identical(): void
+    {
+        $ratings = [];
+        foreach (Criterion::query()->pluck('code') as $code) {
+            $ratings[$code] = 3;
+        }
+
+        $this->from('/tes')
+            ->post('/tes', [
+                'visitor_name' => 'Budi',
+                'ratings' => $ratings,
+            ])
+            ->assertRedirect('/tes')
+            ->assertSessionHasErrors('ratings');
+    }
+
+    public function test_result_placeholder_page_shows_top_three(): void
+    {
+        $ratings = $this->validRatings();
+
+        $this->post('/tes', [
+            'visitor_name' => 'Budi',
             'ratings' => $ratings,
         ]);
 
-        $response = $this->get('/results/test-token-789');
+        $session = TestSession::first();
+
+        $response = $this->get('/hasil/'.$session->token);
 
         $response->assertOk();
         $response->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('result/show')
-            ->where('result.top_career_code', 'data_analyst')
-            ->has('result.ranking', 10)
-            ->has('gap_analysis')
-            ->has('explanation')
+            ->component('public/result-placeholder')
+            ->has('top_results', 3)
         );
+    }
+
+    private function validRatings(): array
+    {
+        $ratings = [];
+        $index = 0;
+        foreach (Criterion::query()->pluck('code') as $code) {
+            $ratings[$code] = [5, 4, 3, 2, 4, 3, 2, 5, 3, 4, 2, 3][$index % 12];
+            $index++;
+        }
+
+        return $ratings;
     }
 }

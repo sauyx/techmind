@@ -10,24 +10,20 @@ class TestAnswer extends Model
 {
     use HasFactory;
 
-    public $timestamps = false;
-
     protected $fillable = [
         'test_session_id',
         'criterion_id',
         'criterion_code',
         'criterion_name',
         'rating',
-        'weight_snapshot',
-        'created_at',
+        'multiplier_snapshot',
     ];
 
     protected function casts(): array
     {
         return [
             'rating' => 'integer',
-            'weight_snapshot' => 'decimal:2',
-            'created_at' => 'datetime',
+            'multiplier_snapshot' => 'decimal:2',
         ];
     }
 

@@ -12,21 +12,34 @@ class TestResult extends Model
 
     protected $fillable = [
         'test_session_id',
-        'method_code',
-        'ranking',
-        'top_career_code',
-        'top_career_name',
+        'career_id',
+        'career_code',
+        'career_name',
+        'rank',
+        'saw_score',
+        'match_percentage',
+        'contribution_breakdown',
+        'gap_summary',
     ];
 
     protected function casts(): array
     {
         return [
-            'ranking' => 'array',
+            'rank' => 'integer',
+            'saw_score' => 'decimal:6',
+            'match_percentage' => 'decimal:1',
+            'contribution_breakdown' => 'array',
+            'gap_summary' => 'array',
         ];
     }
 
     public function session(): BelongsTo
     {
         return $this->belongsTo(TestSession::class, 'test_session_id');
+    }
+
+    public function career(): BelongsTo
+    {
+        return $this->belongsTo(Career::class);
     }
 }

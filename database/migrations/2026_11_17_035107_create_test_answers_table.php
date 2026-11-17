@@ -12,14 +12,14 @@ return new class extends Migration
         Schema::create('test_answers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('test_session_id')->constrained('test_sessions')->cascadeOnDelete();
-            $table->foreignId('criterion_id')->nullable()->constrained('criteria')->nullOnDelete();
+            $table->foreignId('criterion_id')->constrained('criteria')->restrictOnDelete();
             $table->string('criterion_code', 64);
             $table->string('criterion_name', 128);
             $table->unsignedTinyInteger('rating');
-            $table->decimal('weight_snapshot', 5, 2)->default(1.00);
-            $table->timestamp('created_at')->nullable();
+            $table->decimal('multiplier_snapshot', 4, 2)->default(1.00);
+            $table->timestamps();
 
-            $table->unique(['test_session_id', 'criterion_code']);
+            $table->unique(['test_session_id', 'criterion_id']);
             $table->index('test_session_id');
         });
 

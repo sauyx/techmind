@@ -1,5 +1,4 @@
 import { Link } from '@inertiajs/react';
-import { store } from '@/routes/tests';
 import { HeroVisual } from './hero-visual';
 
 export function Hero() {
@@ -20,12 +19,12 @@ export function Hero() {
                     </p>
                     <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                         <Link
-                            href={store.url()}
+                            href="/tes"
                             method="post"
                             as="button"
                             className="inline-flex h-11 items-center justify-center rounded-lg bg-brand px-5 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                         >
-                            Mulai Tes
+                            Mulai Tes Sekarang
                         </Link>
                         <a
                             href="#tentang"

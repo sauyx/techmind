@@ -1,6 +1,5 @@
 import { Menu, X } from 'lucide-react';
 import { Link } from '@inertiajs/react';
-import { store } from '@/routes/tests';
 import { useState } from 'react';
 
 const links = [
@@ -40,12 +39,12 @@ export function LandingNav() {
 
                 <div className="hidden md:block">
                     <Link
-                        href={store.url()}
+                        href="/tes"
                         method="post"
                         as="button"
                         className="inline-flex h-9 items-center justify-center rounded-lg bg-brand px-4 text-sm font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2"
                     >
-                        Mulai Tes
+                        Mulai Tes Sekarang
                     </Link>
                 </div>
 
@@ -81,13 +80,13 @@ export function LandingNav() {
                             </a>
                         ))}
                         <Link
-                            href={store.url()}
+                            href="/tes"
                             method="post"
                             as="button"
                             className="mt-2 inline-flex h-9 items-center justify-center rounded-lg bg-brand px-4 text-sm font-medium text-white"
                             onClick={() => setOpen(false)}
                         >
-                            Mulai Tes
+                            Mulai Tes Sekarang
                         </Link>
                     </nav>
                 </div>

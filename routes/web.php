@@ -6,18 +6,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'welcome')->name('home');
 
-Route::post('/tests', [TestController::class, 'store'])
+Route::get('/tes', [TestController::class, 'create'])
+    ->name('tests.create');
+
+Route::post('/tes', [TestController::class, 'store'])
     ->name('tests.store')
-    ->middleware('throttle:10,1');
+    ->middleware('throttle:30,1');
 
-Route::get('/tests/{token}', [TestController::class, 'show'])
-    ->name('tests.show');
-
-Route::post('/tests/{token}/answers', [TestController::class, 'submit'])
-    ->name('tests.submit')
-    ->middleware('throttle:10,1');
-
-Route::get('/results/{token}', [ResultController::class, 'show'])
+Route::get('/hasil/{token}', [ResultController::class, 'show'])
     ->name('results.show');
 
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {

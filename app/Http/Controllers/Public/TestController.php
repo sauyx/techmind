@@ -4,59 +4,39 @@ namespace App\Http\Controllers\Public;
 
 use App\Contracts\CriterionRepository;
 use App\Http\Controllers\Controller;
-use App\Models\TestSession;
-use App\Services\QuestionnaireService;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreTestRequest;
+use App\Services\TestSubmissionService;
 use Inertia\Inertia;
 
 class TestController extends Controller
 {
     public function __construct(
-        private QuestionnaireService $questionnaire,
         private CriterionRepository $criteria,
+        private TestSubmissionService $submission,
     ) {}
 
-    public function store(Request $request)
+    public function create()
     {
-        $validated = $request->validate([
-            'visitor_name' => ['nullable', 'string', 'max:128'],
-        ]);
-
-        $session = $this->questionnaire->start($validated['visitor_name'] ?? null);
-
-        return redirect()->route('tests.show', $session->token);
-    }
-
-    public function show(string $token)
-    {
-        $session = TestSession::query()->where('token', $token)->firstOrFail();
-
         $criteria = $this->criteria->activeOrdered()->map(fn ($criterion) => [
             'code' => (string) $criterion->code,
             'name' => (string) $criterion->name,
-            'description' => (string) $criterion->description,
+            'description' => 'Seberapa sesuai pernyataan ini dengan dirimu? '.(string) $criterion->description,
             'step_group' => (int) $criterion->step_group,
             'display_order' => (int) $criterion->display_order,
         ])->values()->all();
 
-        return Inertia::render('test/show', [
-            'session' => [
-                'token' => $session->token,
-                'visitor_name' => $session->visitor_name,
-                'status' => $session->status,
-            ],
+        return Inertia::render('public/test', [
             'criteria' => $criteria,
         ]);
     }
 
-    public function submit(Request $request, string $token)
+    public function store(StoreTestRequest $request)
     {
-        $validated = $request->validate([
-            'ratings' => ['required', 'array'],
-        ]);
+        $session = $this->submission->submit(
+            $request->validated('visitor_name'),
+            $request->validated('ratings')
+        );
 
-        $outcome = $this->questionnaire->submit($token, $validated['ratings']);
-
-        return redirect()->route('results.show', $outcome['session']->token);
+        return redirect()->route('results.show', $session->token);
     }
 }

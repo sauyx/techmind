@@ -10,14 +10,18 @@ return new class extends Migration
     {
         Schema::create('test_results', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('test_session_id')->unique()->constrained('test_sessions')->cascadeOnDelete();
-            $table->string('method_code', 32)->default('SAW');
-            $table->json('ranking');
-            $table->string('top_career_code', 64);
-            $table->string('top_career_name', 128);
+            $table->foreignId('test_session_id')->constrained('test_sessions')->cascadeOnDelete();
+            $table->foreignId('career_id')->constrained('careers')->restrictOnDelete();
+            $table->string('career_code', 64);
+            $table->string('career_name', 128);
+            $table->unsignedTinyInteger('rank');
+            $table->decimal('saw_score', 8, 6);
+            $table->decimal('match_percentage', 5, 1);
+            $table->json('contribution_breakdown');
+            $table->json('gap_summary')->nullable();
             $table->timestamps();
 
-            $table->index('top_career_code');
+            $table->index(['test_session_id', 'rank']);
         });
     }
 
