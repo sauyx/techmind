@@ -71,3 +71,8 @@ Status: selesai (bukti: Docker MySQL healthy di port 3309; migrate:fresh --seed 
 ## Catatan Sesi 3b
 
 - Matrix tuning D-22 diterapkan; simulasi skenario uniform/typical/peaky ditambahkan.
+
+## Catatan Audit Sesi 3c
+
+- Audit SPK selesai; laporan di `docs/audit/SESI-3C-SPK-AUDIT.md`.
+- Tidak ada perubahan matriks, formula, bobot, atau persona.
