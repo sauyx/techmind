@@ -131,3 +131,7 @@ Format: `D-xx` — keputusan, opsi, rekomendasi/status.
 ## D-21 Tie-break ranking
 - Keputusan final: jika skor sama (selisih < 1e-9), urutkan berdasarkan `sort_order` karier ascending (deterministik).
 - Status: disetujui.
+
+## D-22 Penyetelan tiga baris matriks
+- Keputusan final: tiga baris matriks diubah (`web_developer`, `mobile_developer`, `qa_engineer`) untuk mengurangi karier yang hampir tidak pernah menang dan memisahkan web dari mobile; total tiap karier tetap 37.
+- Status: disetujui.

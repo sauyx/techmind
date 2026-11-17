@@ -67,3 +67,7 @@ Status: selesai (bukti: Docker MySQL healthy di port 3309; migrate:fresh --seed 
 - Sesi 5+6: `feat/result-ai-pdf`
 - Sesi 7+8: `feat/admin-demo`
 - Semua branch dari `docs/initial-planning` atau `main` sesuai keputusan tim.
+
+## Catatan Sesi 3b
+
+- Matrix tuning D-22 diterapkan; simulasi skenario uniform/typical/peaky ditambahkan.

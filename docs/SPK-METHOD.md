@@ -135,16 +135,23 @@ Kolom: C1 logic_problem_solving, C2 data_analysis, C3 math_statistics, C4 attent
 
 | Karier | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 | Total |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Web Developer | 4 | 2 | 2 | 3 | 3 | 4 | 4 | 3 | 5 | 2 | 2 | 3 | 37 |
-| Mobile Developer | 4 | 2 | 2 | 4 | 4 | 3 | 3 | 3 | 5 | 1 | 3 | 3 | 37 |
+| Web Developer | 3 | 2 | 1 | 3 | 3 | 4 | 4 | 4 | 5 | 2 | 2 | 4 | 37 |
+| Mobile Developer | 4 | 2 | 2 | 4 | 4 | 3 | 3 | 2 | 5 | 1 | 4 | 3 | 37 |
 | Backend Developer | 5 | 3 | 3 | 4 | 1 | 2 | 1 | 2 | 5 | 4 | 4 | 3 | 37 |
 | Data Analyst | 4 | 5 | 5 | 3 | 2 | 3 | 2 | 4 | 3 | 1 | 2 | 3 | 37 |
 | UI/UX Designer | 3 | 3 | 1 | 3 | 5 | 5 | 5 | 4 | 2 | 1 | 1 | 4 | 37 |
-| QA Engineer | 4 | 3 | 2 | 5 | 2 | 3 | 4 | 3 | 3 | 2 | 3 | 3 | 37 |
+| QA Engineer | 4 | 3 | 1 | 5 | 2 | 3 | 4 | 4 | 3 | 1 | 3 | 4 | 37 |
 | DevOps Engineer | 4 | 3 | 2 | 4 | 1 | 3 | 1 | 3 | 4 | 5 | 4 | 3 | 37 |
 | Network Engineer | 4 | 2 | 2 | 5 | 1 | 3 | 2 | 3 | 3 | 5 | 4 | 3 | 37 |
 | Cybersecurity Analyst | 4 | 3 | 2 | 5 | 1 | 3 | 1 | 3 | 3 | 4 | 5 | 3 | 37 |
 | System Analyst | 4 | 3 | 2 | 4 | 2 | 3 | 5 | 5 | 1 | 1 | 2 | 5 | 37 |
+
+## 7b. Perubahan dari Versi Sesi 3 (D-22)
+
+- `web_developer`: 4,2,2,3,3,4,4,3,5,2,2,3 -> 3,2,1,3,3,4,4,4,5,2,2,4
+- `mobile_developer`: 4,2,2,4,4,3,3,3,5,1,3,3 -> 4,2,2,4,4,3,3,2,5,1,4,3
+- `qa_engineer`: 4,3,2,5,2,3,4,3,3,2,3,3 -> 4,3,1,5,2,3,4,4,3,1,3,4
+- Total tiap karier tetap 37.
 
 ## 7. Validasi Data (Wajib Sebelum Produksi)
 ## 7a. Perubahan dari Versi Sesi 0
