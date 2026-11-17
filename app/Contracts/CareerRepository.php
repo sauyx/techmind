@@ -13,6 +13,8 @@ interface CareerRepository
 
     public function find(int $id): ?Career;
 
+    public function findWithProfiles(int $id): ?Career;
+
     public function create(array $data): Career;
 
     public function update(Career $career, array $data): Career;

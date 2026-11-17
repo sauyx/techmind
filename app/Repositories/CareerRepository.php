@@ -32,6 +32,13 @@ class CareerRepository implements CareerRepositoryContract
         return Career::query()->find($id);
     }
 
+    public function findWithProfiles(int $id): ?Career
+    {
+        return Career::query()
+            ->with(['careerProfiles.criterion'])
+            ->find($id);
+    }
+
     public function create(array $data): Career
     {
         return Career::query()->create($data);
