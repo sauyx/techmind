@@ -119,3 +119,15 @@ Format: `D-xx` — keputusan, opsi, rekomendasi/status.
 ## D-18 Satu jenis akun (admin)
 - Keputusan final: aplikasi hanya memiliki akun admin; fitur Fortify yang tidak dipakai (registrasi, reset password, verifikasi email, 2FA, passkey, settings profil) dinonaktifkan, kecuali login dan logout.
 - Status: disetujui.
+
+## D-19 Penggantian kriteria dan penyeimbangan matriks
+- Keputusan final: kriteria `self_discipline` dan `teamwork` diganti `coding` dan `user_empathy`; matriks diseimbangkan (total tiap karier 37).
+- Status: disetujui.
+
+## D-20 Pengali admin pada bobot
+- Keputusan final: `criteria.weight` = pengali admin per kriteria (default 1.00, rentang 0.50-2.00). Rumus: `w_j = (r_j * m_j) / SUM(r_k * m_k)`. Dengan semua `m=1` identik dengan SAW kanonik.
+- Status: disetujui.
+
+## D-21 Tie-break ranking
+- Keputusan final: jika skor sama (selisih < 1e-9), urutkan berdasarkan `sort_order` karier ascending (deterministik).
+- Status: disetujui.

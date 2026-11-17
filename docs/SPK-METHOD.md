@@ -23,24 +23,28 @@ Dokumen ini menjelaskan metode SPK yang direkomendasikan, rumus, contoh hitung, 
 ### 1.4 Rekomendasi
 Gunakan **SAW** sebagai metode utama. Tampilkan gap analysis (selisih rating vs profil) sebagai penjelasan tambahan, bukan sebagai skor utama.
 
-## 2. Rumus SAW (Kanonik)
+## 2. Rumus SAW (Kanonik, dengan Pengali Admin)
 
 Misal terdapat `m` karier (alternatif) dan `n` kriteria.
 
 1. Rating pengguna: `r_j` (1..5) untuk kriteria `j`.
-2. Bobot ternormalisasi:
-   `w_j = r_j / Σ_{k=1}^{n} r_k`
-3. Profil karier: `x_{ij}` (1..5) untuk karier `i`, kriteria `j`.
-4. Normalisasi matriks keputusan (kriteria benefit):
-   `r_{ij} = x_{ij} / max_{i}(x_{ij})`
-5. Skor akhir karier:
+2. Pengali admin: `m_j` (default 1.00, rentang 0.50-2.00).
+3. Bobot ternormalisasi:
+   `w_j = (r_j * m_j) / Σ_{k=1}^{n} (r_k * m_k)`
+   Jika semua `m_k = 1`, identik dengan SAW kanonik.
+4. Profil karier: `x_{ij}` (1..5) untuk karier `i`, kriteria `j`.
+5. Normalisasi matriks keputusan (kriteria benefit, max di antara karier aktif):
+   `r_{ij} = x_{ij} / max_{i aktif}(x_{ij})`
+6. Skor akhir karier:
    `V_i = Σ_{j=1}^{n} w_j * r_{ij}`
-6. Ranking: urutkan `V_i` descending.
+7. Ranking: urutkan `V_i` descending.
+
+Tie-break (D-21): jika `|V_a - V_b| < 1e-9`, urutkan berdasarkan `sort_order` karier ascending (deterministik).
 
 Catatan:
 - Semua kriteria bersifat benefit (lebih tinggi lebih baik).
-- Jika semua profil pada satu kriteria bernilai sama, normalisasi menghasilkan 1 untuk semua (tidak mempengaruhi ranking).
-- Snapshot bobot dan profil disimpan agar hasil lama stabil (lihat DATABASE.md).
+- Karier nonaktif tidak ikut ranking dan tidak ikut penentuan max.
+- Skor kecocokan tampilan = `V_i * 100` dibulatkan 1 desimal; ini indeks kecocokan relatif, bukan probabilitas.
 
 ## 3. Contoh Hitung Manual (3 Karier x 4 Kriteria)
 
@@ -86,24 +90,27 @@ Untuk kriteria dengan gap besar (|r_j - x_{ij}| >= 2), tampilkan pesan:
 - Jika profil karier > rating pengguna: "Kamu mungkin perlu menguatkan X."
 - Jika profil karier < rating pengguna: "Kamu unggul di X; karier ini kurang memanfaatkannya."
 
-## 4. Kriteria Final (12)
+## 4. Kriteria Final (12) — Sesi 3 (D-19)
 
-Status: DATA AWAL, belum tervalidasi dengan sumber eksternal.
+Status: DATA AWAL, belum tervalidasi.
 
-| Kode | Nama | Deskripsi Singkat |
-|---|---|---|
-| logic_problem_solving | Logika & Pemecahan Masalah | Kemampuan berpikir logis, debugging, algoritma |
-| data_analysis | Analisis Data | Membaca, membersihkan, menafsirkan data |
-| visual_design | Desain Visual | Estetika, layout, warna, tipografi |
-| communication | Komunikasi & Presentasi | Menjelaskan ide ke tim/klien |
-| attention_detail | Ketelitian & Pengujian | Cermat, uji kasus, kualitas |
-| math_statistics | Matematika & Statistik | Probabilitas, statistik, model |
-| network_infra | Jaringan & Infrastruktur | Server, jaringan, deployment |
-| creativity | Kreativitas | Ide baru, eksplorasi solusi |
-| self_discipline | Kerja Mandiri & Disiplin | Konsistensi, belajar mandiri |
-| teamwork | Kolaborasi Tim | Kerja sama, koordinasi |
-| security_awareness | Keamanan & Risiko | Ancaman, praktik aman |
-| business_process | Pemahaman Bisnis/Proses | Kebutuhan pengguna, proses organisasi |
+Langkah 1 "Cara Berpikir":
+- `logic_problem_solving` Logika & Pemecahan Masalah
+- `data_analysis` Analisis Data
+- `math_statistics` Matematika & Statistik
+- `attention_detail` Ketelitian & Pengujian
+
+Langkah 2 "Kreasi & Interaksi":
+- `visual_design` Desain Visual
+- `creativity` Kreativitas
+- `user_empathy` Empati & Riset Pengguna
+- `communication` Komunikasi & Presentasi
+
+Langkah 3 "Teknis & Bisnis":
+- `coding` Pemrograman & Pengembangan Perangkat Lunak
+- `network_infra` Jaringan & Infrastruktur
+- `security_awareness` Keamanan & Risiko
+- `business_process` Pemahaman Bisnis & Proses
 
 ## 5. Daftar Karier (10)
 
@@ -120,22 +127,35 @@ Status: DATA AWAL, belum tervalidasi.
 9. System Analyst
 10. Backend Developer
 
-## 6. Matriks Profil Karier (skor ideal 1-5)
+## 6. Matriks Profil Karier (skor ideal 1-5) — Sesi 3 (D-19)
 
-Status: DATA AWAL, belum tervalidasi. Baris = karier, kolom = kriteria (C1..C12 sesuai urutan kriteria final).
+Status: DATA AWAL, belum tervalidasi. Total tiap karier = 37 (invarian desain).
 
-| Karier | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 |
-|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Web Developer | 4 | 2 | 3 | 3 | 4 | 2 | 2 | 3 | 4 | 4 | 3 | 2 |
-| Mobile Developer | 4 | 2 | 3 | 3 | 4 | 2 | 2 | 4 | 4 | 4 | 3 | 2 |
-| Data Analyst | 4 | 5 | 2 | 4 | 4 | 5 | 1 | 2 | 4 | 3 | 2 | 3 |
-| UI/UX Designer | 3 | 2 | 5 | 4 | 4 | 1 | 1 | 5 | 3 | 4 | 2 | 3 |
-| QA Engineer | 4 | 3 | 2 | 3 | 5 | 2 | 2 | 2 | 4 | 4 | 3 | 2 |
-| DevOps Engineer | 4 | 3 | 1 | 3 | 4 | 2 | 4 | 2 | 4 | 4 | 4 | 2 |
-| Network Engineer | 3 | 2 | 1 | 3 | 4 | 2 | 5 | 1 | 4 | 3 | 4 | 2 |
-| Cybersecurity Analyst | 4 | 3 | 1 | 4 | 5 | 3 | 4 | 2 | 4 | 3 | 5 | 3 |
-| System Analyst | 4 | 4 | 2 | 5 | 4 | 3 | 2 | 3 | 4 | 4 | 3 | 5 |
-| Backend Developer | 5 | 3 | 1 | 3 | 4 | 3 | 3 | 2 | 4 | 4 | 4 | 2 |
+Kolom: C1 logic_problem_solving, C2 data_analysis, C3 math_statistics, C4 attention_detail, C5 visual_design, C6 creativity, C7 user_empathy, C8 communication, C9 coding, C10 network_infra, C11 security_awareness, C12 business_process.
+
+| Karier | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 | Total |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Web Developer | 4 | 2 | 2 | 3 | 3 | 4 | 4 | 3 | 5 | 2 | 2 | 3 | 37 |
+| Mobile Developer | 4 | 2 | 2 | 4 | 4 | 3 | 3 | 3 | 5 | 1 | 3 | 3 | 37 |
+| Backend Developer | 5 | 3 | 3 | 4 | 1 | 2 | 1 | 2 | 5 | 4 | 4 | 3 | 37 |
+| Data Analyst | 4 | 5 | 5 | 3 | 2 | 3 | 2 | 4 | 3 | 1 | 2 | 3 | 37 |
+| UI/UX Designer | 3 | 3 | 1 | 3 | 5 | 5 | 5 | 4 | 2 | 1 | 1 | 4 | 37 |
+| QA Engineer | 4 | 3 | 2 | 5 | 2 | 3 | 4 | 3 | 3 | 2 | 3 | 3 | 37 |
+| DevOps Engineer | 4 | 3 | 2 | 4 | 1 | 3 | 1 | 3 | 4 | 5 | 4 | 3 | 37 |
+| Network Engineer | 4 | 2 | 2 | 5 | 1 | 3 | 2 | 3 | 3 | 5 | 4 | 3 | 37 |
+| Cybersecurity Analyst | 4 | 3 | 2 | 5 | 1 | 3 | 1 | 3 | 3 | 4 | 5 | 3 | 37 |
+| System Analyst | 4 | 3 | 2 | 4 | 2 | 3 | 5 | 5 | 1 | 1 | 2 | 5 | 37 |
+
+## 7. Validasi Data (Wajib Sebelum Produksi)
+## 7a. Perubahan dari Versi Sesi 0
+
+- Kriteria `self_discipline` dan `teamwork` diganti `coding` dan `user_empathy`.
+- Urutan kriteria dikelompokkan menjadi 3 langkah x 4 kriteria.
+- Bobot admin (`criteria.weight`) ditambahkan sebagai pengali (D-20).
+- Tie-break deterministik ditambahkan (D-21).
+- Matriks diseimbangkan sehingga total tiap karier = 37.
+
+
 
 ## 7. Validasi Data (Wajib Sebelum Produksi)
 
