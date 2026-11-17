@@ -12,7 +12,7 @@ export default function Welcome() {
     return (
         <>
             <Head title="TechMind" />
-            <div className="min-h-screen overflow-x-hidden bg-white text-zinc-950">
+            <div className="min-h-screen overflow-x-hidden bg-zinc-50/80 text-zinc-950">
                 <LandingNav />
                 <main>
                     <Hero />
