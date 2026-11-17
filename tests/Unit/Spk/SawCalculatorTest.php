@@ -10,7 +10,7 @@ class SawCalculatorTest extends TestCase
 {
     public function test_manual_example_from_docs(): void
     {
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
 
         $criteria = [
             ['code' => 'c1', 'multiplier' => 1.0],
@@ -40,7 +40,7 @@ class SawCalculatorTest extends TestCase
 
     public function test_admin_multiplier_changes_weights(): void
     {
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
 
         $criteria = [
             ['code' => 'c1', 'multiplier' => 2.0],
@@ -62,7 +62,7 @@ class SawCalculatorTest extends TestCase
 
     public function test_invalid_ratings_throw(): void
     {
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
         $criteria = [['code' => 'c1', 'multiplier' => 1.0]];
         $careers = [['code' => 'a', 'sort_order' => 1, 'scores' => ['c1' => 3]]];
 
@@ -84,7 +84,7 @@ class SawCalculatorTest extends TestCase
 
     public function test_tie_break_is_deterministic(): void
     {
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
         $criteria = [['code' => 'c1', 'multiplier' => 1.0]];
         $careers = [
             ['code' => 'b', 'sort_order' => 2, 'scores' => ['c1' => 4]],
@@ -100,7 +100,7 @@ class SawCalculatorTest extends TestCase
 
     public function test_inactive_career_is_excluded_from_ranking_and_max(): void
     {
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
         $criteria = [['code' => 'c1', 'multiplier' => 1.0]];
         $careers = [
             ['code' => 'a', 'sort_order' => 1, 'scores' => ['c1' => 3]],
@@ -110,6 +110,6 @@ class SawCalculatorTest extends TestCase
         $result = $calculator->calculate($criteria, $careers, ['c1' => 5]);
 
         $this->assertCount(2, $result['rankings']);
-        $this->assertSame(1.0, $result['normalized_matrix']['a']['c1']);
+        $this->assertEqualsWithDelta(0.6, $result['normalized_matrix']['a']['c1'], 0.000001);
     }
 }

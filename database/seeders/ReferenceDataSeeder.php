@@ -20,13 +20,13 @@ class ReferenceDataSeeder extends Seeder
         $validCriterionCodes = array_column($criteriaData, 'code');
         $validCareerCodes = array_column($careersData, 'code');
 
-        \App\Models\CareerProfile::query()
+        CareerProfile::query()
             ->whereHas('criterion', fn ($q) => $q->whereNotIn('code', $validCriterionCodes))
             ->orWhereHas('career', fn ($q) => $q->whereNotIn('code', $validCareerCodes))
             ->delete();
 
-        \App\Models\Criterion::query()->whereNotIn('code', $validCriterionCodes)->delete();
-        \App\Models\Career::query()->whereNotIn('code', $validCareerCodes)->delete();
+        Criterion::query()->whereNotIn('code', $validCriterionCodes)->delete();
+        Career::query()->whereNotIn('code', $validCareerCodes)->delete();
 
         foreach ($criteriaData as $data) {
             Criterion::query()->updateOrCreate(

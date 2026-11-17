@@ -9,9 +9,9 @@ class SawCalculator
     private const TIE_EPSILON = 1e-9;
 
     /**
-     * @param array<int, array{code: string, multiplier: float|int}> $criteria
-     * @param array<int, array{code: string, sort_order: int, scores: array<string, int>}> $careers
-     * @param array<string, int|float|string> $ratings
+     * @param  array<int, array{code: string, multiplier: float|int}>  $criteria
+     * @param  array<int, array{code: string, sort_order: int, scores: array<string, int>}>  $careers
+     * @param  array<string, int|float|string>  $ratings
      * @return array<string, mixed>
      */
     public function calculate(array $criteria, array $careers, array $ratings): array

@@ -12,13 +12,12 @@ class RecommendationService
     public function __construct(
         private CriterionRepository $criteria,
         private CareerRepository $careers,
-        private SawCalculator $calculator = new SawCalculator(),
-        private GapAnalyzer $gapAnalyzer = new GapAnalyzer(),
-    ) {
-    }
+        private SawCalculator $calculator = new SawCalculator,
+        private GapAnalyzer $gapAnalyzer = new GapAnalyzer,
+    ) {}
 
     /**
-     * @param array<string, int|float|string> $ratings
+     * @param  array<string, int|float|string>  $ratings
      * @return array<string, mixed>
      */
     public function recommend(array $ratings): array

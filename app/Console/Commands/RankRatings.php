@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class RankRatings extends Command
 {
     protected $signature = 'techmind:rank {ratings*}';
+
     protected $description = 'Hitung ranking untuk 12 rating (urutan kriteria sesuai seeder).';
 
     public function handle(): int
@@ -25,7 +26,7 @@ class RankRatings extends Command
         $codes = array_column($criteria, 'code');
         $ratings = array_combine($codes, $ratingsValues);
 
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
         $result = $calculator->calculate($criteria, $careers, $ratings);
 
         $rows = [];

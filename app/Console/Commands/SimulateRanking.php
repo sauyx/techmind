@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 class SimulateRanking extends Command
 {
     protected $signature = 'techmind:simulate-ranking {--n=10000} {--seed=42}';
+
     protected $description = 'Simulasi ranking untuk n vektor rating acak (seed tetap).';
 
     public function handle(): int
@@ -17,7 +18,7 @@ class SimulateRanking extends Command
 
         [$criteria, $careers] = $this->loadData();
         $codes = array_column($criteria, 'code');
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
 
         mt_srand($seed);
 

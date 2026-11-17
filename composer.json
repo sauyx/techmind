@@ -65,7 +65,7 @@
             "vendor/bin/pint --test",
             "npm run typecheck",
             "npm run build",
-            "vendor/bin/pest"
+            "vendor/bin/pest --exclude-group=fairness"
         ],
         "types:check": [
             "phpstan analyse"

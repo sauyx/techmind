@@ -12,7 +12,7 @@ class FairnessTest extends TestCase
     public function test_self_profile_ranks_first(): void
     {
         [$criteria, $careers] = $this->loadData();
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
 
         foreach ($careers as $career) {
             $ratings = $career['scores'];
@@ -25,7 +25,7 @@ class FairnessTest extends TestCase
     public function test_personas_rank_expected_career_first(): void
     {
         [$criteria, $careers] = $this->loadData();
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
 
         $personas = [
             'web_developer' => [4, 2, 2, 3, 3, 3, 3, 3, 5, 2, 3, 2],
@@ -53,7 +53,7 @@ class FairnessTest extends TestCase
     public function test_uniform_ratings_report_scores(): void
     {
         [$criteria, $careers] = $this->loadData();
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
         $codes = array_column($criteria, 'code');
 
         foreach ([1, 3, 5] as $value) {
@@ -67,7 +67,7 @@ class FairnessTest extends TestCase
     public function test_random_simulation_thresholds(): void
     {
         [$criteria, $careers] = $this->loadData();
-        $calculator = new SawCalculator();
+        $calculator = new SawCalculator;
         $codes = array_column($criteria, 'code');
 
         mt_srand(42);
