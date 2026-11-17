@@ -94,7 +94,7 @@ export default function CareersIndex({ careers, standard_total_score, max_total_
                                                 <span
                                                     className={`rounded-md px-2 py-1 text-xs font-medium ${career.total_score === standard_total_score ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}
                                                 >
-                                                    {career.total_score} / {max_total_score}
+                                                    <span className="tabular-nums">{career.total_score} / {max_total_score}</span>
                                                 </span>
                                             </td>
                                             <td className="px-4 py-4">

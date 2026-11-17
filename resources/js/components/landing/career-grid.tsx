@@ -38,19 +38,34 @@ export function CareerGrid() {
                     </p>
                 </div>
 
-                <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
-                    {careers.map((career) => (
+                <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-6">
+                    {careers.map((career, index) => (
                         <article
                             key={career.name}
-                            className="group rounded-xl border border-zinc-200 bg-white p-5 transition-colors hover:border-zinc-300"
+                            className={`group rounded-xl border border-zinc-200/80 bg-white transition-colors hover:border-zinc-300 ${
+                                index === 0
+                                    ? 'col-span-2 row-span-2 flex flex-col justify-between p-6'
+                                    : 'col-span-1 p-4'
+                            }`}
                         >
                             <career.icon
-                                className="h-6 w-6 text-brand"
+                                className={index === 0 ? 'h-7 w-7 text-brand' : 'h-5 w-5 text-brand'}
                                 aria-hidden="true"
                             />
-                            <h3 className="mt-4 text-sm font-semibold text-zinc-950">
-                                {career.name}
-                            </h3>
+                            <div>
+                                <h3
+                                    className={`font-semibold tracking-tight text-zinc-950 ${
+                                        index === 0 ? 'mt-6 text-lg' : 'mt-4 text-sm'
+                                    }`}
+                                >
+                                    {career.name}
+                                </h3>
+                                {index === 0 ? (
+                                    <p className="mt-2 text-sm leading-6 text-zinc-600">
+                                        Jalur yang menggabungkan antarmuka, layanan backend, dan proses rilis aplikasi web.
+                                    </p>
+                                ) : null}
+                            </div>
                         </article>
                     ))}
                 </div>

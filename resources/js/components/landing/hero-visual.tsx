@@ -1,29 +1,84 @@
 export function HeroVisual() {
+    const criteria = [
+        { label: 'Logika', value: 5 },
+        { label: 'Pemrograman', value: 5 },
+        { label: 'Desain', value: 2 },
+    ];
+
+    const ranking = [
+        { name: 'Backend Developer', score: '88.4%' },
+        { name: 'DevOps Engineer', score: '81.2%' },
+        { name: 'Data Analyst', score: '76.5%' },
+    ];
+
     return (
-        <div className="relative mx-auto w-full max-w-md">
-            <div className="absolute -inset-4 rounded-3xl bg-brand/5 blur-2xl" aria-hidden="true" />
-            <div className="relative rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-                <svg
-                    viewBox="0 0 360 280"
-                    className="h-auto w-full"
-                    role="img"
-                    aria-label="Ilustrasi eksplorasi jalur karier IT"
-                >
-                    <rect x="20" y="20" width="320" height="240" rx="18" fill="#fafafa" />
-                    <path
-                        d="M60 200 C90 150 120 120 160 110 S230 95 300 70"
-                        fill="none"
-                        stroke="#4F46E5"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                    />
-                    <circle cx="60" cy="200" r="6" fill="#4F46E5" />
-                    <circle cx="160" cy="110" r="6" fill="#4F46E5" />
-                    <circle cx="300" cy="70" r="6" fill="#4F46E5" />
-                    <rect x="45" y="45" width="90" height="42" rx="8" fill="#ffffff" stroke="#e4e4e7" />
-                    <rect x="225" y="150" width="90" height="42" rx="8" fill="#ffffff" stroke="#e4e4e7" />
-                    <rect x="135" y="118" width="90" height="42" rx="8" fill="#ffffff" stroke="#e4e4e7" />
-                </svg>
+        <div className="w-full max-w-md">
+            <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 sm:p-6">
+                <div className="flex items-center justify-between gap-3 border-b border-zinc-200/80 pb-4">
+                    <div>
+                        <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                            Preview Kartu Analisis
+                        </p>
+                        <p className="mt-1 text-sm font-semibold tracking-tight text-zinc-950">
+                            TechMind
+                        </p>
+                    </div>
+                    <span className="rounded-md bg-brand/10 px-2 py-1 text-[11px] font-semibold text-brand">
+                        Contoh Skor
+                    </span>
+                </div>
+
+                <div className="space-y-3 py-4">
+                    {criteria.map((item) => (
+                        <div key={item.label} className="grid grid-cols-[88px_1fr_40px] items-center gap-3">
+                            <span className="truncate text-xs font-medium text-zinc-600">
+                                {item.label}
+                            </span>
+                            <div className="h-2 overflow-hidden rounded-full bg-zinc-200">
+                                <div
+                                    className="h-2 rounded-full bg-brand"
+                                    style={{ width: `${(item.value / 5) * 100}%` }}
+                                />
+                            </div>
+                            <span className="text-right text-xs font-semibold tabular-nums text-zinc-950">
+                                {item.value}/5
+                            </span>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+                    <p className="text-[11px] font-medium uppercase tracking-wide text-zinc-500">
+                        Peringkat Simulasi
+                    </p>
+                    <div className="mt-3 space-y-2.5">
+                        {ranking.map((item, index) => (
+                            <div key={item.name} className="grid grid-cols-[24px_1fr_52px] items-center gap-3">
+                                <span className="text-xs font-semibold tabular-nums text-zinc-500">
+                                    {index + 1}
+                                </span>
+                                <div className="min-w-0">
+                                    <p className="truncate text-xs font-medium text-zinc-950">
+                                        {item.name}
+                                    </p>
+                                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-200">
+                                        <div
+                                            className="h-1.5 rounded-full bg-brand"
+                                            style={{ width: item.score }}
+                                        />
+                                    </div>
+                                </div>
+                                <span className="text-right text-xs font-semibold tabular-nums text-zinc-950">
+                                    {item.score}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <p className="mt-4 text-[11px] leading-5 text-zinc-500">
+                    Ilustrasi perhitungan SAW menggunakan data contoh, bukan hasil pengunjung.
+                </p>
             </div>
         </div>
     );

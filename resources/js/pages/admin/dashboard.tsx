@@ -148,13 +148,13 @@ export default function AdminDashboard({ kpi, career_distribution, recent_feedba
                                                 <td className="px-4 py-3 text-zinc-700">
                                                     {feedback.career_name ?? '-'}
                                                     {feedback.match_percentage ? (
-                                                        <span className="ml-1 text-xs text-zinc-500">
+                                                        <span className="ml-1 text-xs tabular-nums text-zinc-500">
                                                             ({feedback.match_percentage}%)
                                                         </span>
                                                     ) : null}
                                                 </td>
                                                 <td className="px-4 py-3">
-                                                    <span className="rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-brand">
+                                                    <span className="rounded-md bg-brand/10 px-2 py-1 text-xs font-medium tabular-nums text-brand">
                                                         {feedback.score}/100
                                                     </span>
                                                 </td>
@@ -184,7 +184,7 @@ function KpiCard({ label, value, hint }: { label: string; value: string; hint?: 
     return (
         <div className="rounded-xl border border-zinc-200 bg-white p-5">
             <p className="text-sm font-medium text-zinc-500">{label}</p>
-            <p className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">{value}</p>
+            <p className="mt-2 text-2xl font-semibold tabular-nums tracking-tight text-zinc-950">{value}</p>
             {hint ? <p className="mt-1 text-xs text-zinc-500">{hint}</p> : null}
         </div>
     );

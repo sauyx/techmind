@@ -1,4 +1,4 @@
-import { Head, useForm } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { useMemo, useState } from 'react';
 import { store } from '@/routes/tests';
 import PublicLayout from '@/layouts/public-layout';
@@ -23,7 +23,56 @@ const scaleLabels = [
     'Sangat Sesuai',
 ];
 
+const demoNames = ['Alya', 'Bagas', 'Citra'];
+
+const demoPatterns: Record<string, number>[] = [
+    {
+        logic_problem_solving: 5,
+        data_analysis: 4,
+        math_statistics: 3,
+        attention_detail: 4,
+        visual_design: 2,
+        creativity: 3,
+        user_empathy: 2,
+        communication: 3,
+        coding: 5,
+        network_infra: 4,
+        security_awareness: 3,
+        business_process: 2,
+    },
+    {
+        logic_problem_solving: 4,
+        data_analysis: 5,
+        math_statistics: 5,
+        attention_detail: 5,
+        visual_design: 2,
+        creativity: 2,
+        user_empathy: 2,
+        communication: 3,
+        coding: 3,
+        network_infra: 3,
+        security_awareness: 4,
+        business_process: 4,
+    },
+    {
+        logic_problem_solving: 3,
+        data_analysis: 3,
+        math_statistics: 2,
+        attention_detail: 3,
+        visual_design: 5,
+        creativity: 5,
+        user_empathy: 5,
+        communication: 5,
+        coding: 3,
+        network_infra: 1,
+        security_awareness: 2,
+        business_process: 4,
+    },
+];
+
 export default function PublicTest({ criteria }: Props) {
+    const { demo_mode } = usePage().props as { demo_mode?: boolean };
+    const [demoIndex, setDemoIndex] = useState(0);
     const [step, setStep] = useState(0);
     const { data, setData, post, processing, errors } = useForm<{
         visitor_name: string;
@@ -58,6 +107,16 @@ export default function PublicTest({ criteria }: Props) {
         post(store.url());
     }
 
+    function fillDemo() {
+        const pattern = demoPatterns[demoIndex % demoPatterns.length];
+        setDemoIndex((value) => value + 1);
+        setData('ratings', { ...pattern });
+
+        if (!data.visitor_name) {
+            setData('visitor_name', demoNames[demoIndex % demoNames.length]);
+        }
+    }
+
     return (
         <>
             <Head title="Mulai Tes Karier" />
@@ -70,6 +129,20 @@ export default function PublicTest({ criteria }: Props) {
                     <p className="mt-2 text-sm leading-6 text-zinc-600">
                         Jawab setiap pernyataan sesuai dengan dirimu. Tidak ada jawaban benar atau salah.
                     </p>
+
+                    {demo_mode && criteria.length > 0 ? (
+                        <div className="mt-4 flex flex-col gap-3 rounded-lg border border-brand/20 bg-brand/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p className="text-sm font-semibold text-zinc-950">Mode Demo Pameran</p>
+                                <p className="mt-0.5 text-xs leading-5 text-zinc-600">
+                                    Isi 12 kriteria dengan pola persona contoh, lalu lanjutkan seperti biasa.
+                                </p>
+                            </div>
+                            <Button type="button" variant="outline" onClick={fillDemo} className="shrink-0">
+                                Isi Simulasi Cepat (Demo)
+                            </Button>
+                        </div>
+                    ) : null}
 
                     {criteria.length === 0 ? (
                         <div
@@ -109,23 +182,25 @@ export default function PublicTest({ criteria }: Props) {
                             <article key={criterion.code} className="rounded-xl border border-zinc-200 bg-white p-4">
                                 <h2 className="text-sm font-semibold text-zinc-950">{criterion.name}</h2>
                                 <p className="mt-1 text-sm leading-6 text-zinc-600">{criterion.description}</p>
-                                <div className="mt-4 grid grid-cols-5 gap-2">
-                                    {scaleLabels.map((label, index) => {
-                                        const value = index + 1;
-                                        const selected = data.ratings[criterion.code] === value;
-                                        return (
-                                            <button
-                                                key={value}
-                                                type="button"
-                                                onClick={() => setRating(criterion.code, value)}
-                                                aria-pressed={selected}
-                                                aria-label={`${criterion.name}: ${value} - ${label}`}
-                                                className={`min-h-11 rounded-lg border px-1 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${selected ? 'border-brand bg-brand text-white' : 'border-zinc-300 text-zinc-700 hover:border-zinc-400'}`}
-                                            >
-                                                {value}
-                                            </button>
-                                        );
-                                    })}
+                                <div className="mt-4 overflow-hidden rounded-lg border border-zinc-200">
+                                    <div className="flex">
+                                        {scaleLabels.map((label, index) => {
+                                            const value = index + 1;
+                                            const selected = data.ratings[criterion.code] === value;
+                                            return (
+                                                <button
+                                                    key={value}
+                                                    type="button"
+                                                    onClick={() => setRating(criterion.code, value)}
+                                                    aria-pressed={selected}
+                                                    aria-label={`${criterion.name}: ${value} - ${label}`}
+                                                    className={`min-h-11 flex-1 border-r border-zinc-200 px-1 text-sm font-semibold tabular-nums transition-colors last:border-r-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand ${selected ? 'bg-brand text-white' : 'bg-white text-zinc-700 hover:bg-zinc-50'}`}
+                                                >
+                                                    {value}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                 </div>
                                 <div className="mt-2 flex justify-between text-[11px] text-zinc-500">
                                     <span>1 — Sangat Tidak Sesuai</span>

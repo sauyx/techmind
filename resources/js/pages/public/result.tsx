@@ -157,7 +157,7 @@ export default function ResultPage({
                             <h2 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">
                                 {topResult.career_name}
                             </h2>
-                            <p className="mt-2 text-lg text-zinc-700">
+                            <p className="mt-2 text-lg font-semibold tabular-nums text-zinc-700">
                                 {topResult.match_percentage}% kecocokan
                             </p>
                             {topResult.gap_summary?.narrative_strengths?.[0] ? (
@@ -203,7 +203,8 @@ export default function ResultPage({
                                 <SelectContent>
                                     {results.map((result) => (
                                         <SelectItem key={result.career_code} value={result.career_code}>
-                                            Rank #{result.rank}: {result.career_name} ({result.match_percentage}%)
+                                            <span className="tabular-nums">Rank #{result.rank}</span>: {result.career_name} (
+                                            <span className="tabular-nums">{result.match_percentage}%</span>)
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -282,14 +283,14 @@ export default function ResultPage({
                                     className={`flex min-w-0 items-center justify-between gap-3 rounded-lg border px-4 py-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 ${selectedCode === item.career_code ? 'border-brand bg-brand/5' : 'border-zinc-200 hover:border-zinc-300'}`}
                                 >
                                     <div className="flex min-w-0 items-center gap-3">
-                                        <span className="text-sm font-semibold text-zinc-500">{item.rank}</span>
+                                        <span className="text-sm font-semibold tabular-nums text-zinc-500">{item.rank}</span>
                                         <span className="truncate text-sm font-medium text-zinc-950">{item.career_name}</span>
                                     </div>
                                     <div className="flex shrink-0 items-center gap-3">
                                         <div className="h-2 w-16 rounded-full bg-zinc-200 sm:w-24">
                                             <div className="h-2 rounded-full bg-brand" style={{ width: `${item.match_percentage}%` }} />
                                         </div>
-                                        <span className="text-sm text-zinc-600">{item.match_percentage}%</span>
+                                        <span className="text-sm tabular-nums text-zinc-600">{item.match_percentage}%</span>
                                     </div>
                                 </button>
                             ))}

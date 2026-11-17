@@ -38,19 +38,29 @@ export function ValueProp() {
                     </p>
                 </div>
 
-                <div className="mt-10 grid gap-4 sm:grid-cols-3">
-                    {items.map((item) => (
+                <div className="mt-10 grid gap-3 sm:grid-cols-6">
+                    {items.map((item, index) => (
                         <article
                             key={item.title}
-                            className="rounded-xl border border-zinc-200 bg-white p-6"
+                            className={`rounded-xl border border-zinc-200/80 bg-white p-5 sm:p-6 ${
+                                index === 0
+                                    ? 'sm:col-span-4'
+                                    : index === 1
+                                      ? 'sm:col-span-2'
+                                      : 'sm:col-span-6'
+                            }`}
                         >
-                            <item.icon className="h-6 w-6 text-brand" aria-hidden="true" />
-                            <h3 className="mt-4 text-base font-semibold text-zinc-950">
-                                {item.title}
-                            </h3>
-                            <p className="mt-2 text-sm leading-6 text-zinc-600">
-                                {item.description}
-                            </p>
+                            <div className="flex items-start gap-4">
+                                <item.icon className="mt-0.5 h-5 w-5 shrink-0 text-brand" aria-hidden="true" />
+                                <div>
+                                    <h3 className="text-base font-semibold tracking-tight text-zinc-950">
+                                        {item.title}
+                                    </h3>
+                                    <p className="mt-2 text-sm leading-6 text-zinc-600">
+                                        {item.description}
+                                    </p>
+                                </div>
+                            </div>
                         </article>
                     ))}
                 </div>

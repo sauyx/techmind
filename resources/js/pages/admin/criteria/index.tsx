@@ -112,7 +112,7 @@ function CriterionRow({ criterion }: { criterion: Criterion }) {
                     </div>
                     <p className="mt-1 text-sm text-zinc-600">{criterion.description || 'Tanpa deskripsi.'}</p>
                     <p className="mt-1 text-xs text-zinc-500">
-                        Bobot x{criterion.weight.toFixed(2)} | Urutan {criterion.display_order}
+                        Bobot x<span className="tabular-nums">{criterion.weight.toFixed(2)}</span> | Urutan <span className="tabular-nums">{criterion.display_order}</span>
                     </p>
                 </div>
                 <Button type="button" variant="outline" onClick={() => setEditing(true)}>
