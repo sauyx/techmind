@@ -57,7 +57,29 @@ npm run build
 php artisan serve
 ```
 
-Akses `http://localhost:8000`. Login admin di `http://localhost:8000/login`.
+Akses `http://localhost:8000`. Login admin di `http://localhost:8000/login` menggunakan `ADMIN_EMAIL` dan `ADMIN_PASSWORD` dari `.env`.
+
+## Mode Demo Pameran
+
+Aktifkan mode demo di `.env`:
+
+```env
+TECHMIND_DEMO_MODE=true
+AI_DRIVER=template
+```
+
+Lalu siapkan data demo dan jalankan aplikasi:
+
+```bash
+php artisan techmind:seed-demo
+php artisan serve
+```
+
+Perintah tersebut menjalankan `ReferenceDataSeeder` dan `DemoSeeder` (18 sesi selesai, penjelasan template, dan tanggapan pengunjung). Tombol simulasi cepat pada kuesioner hanya muncul saat `TECHMIND_DEMO_MODE=true`.
+
+Halaman QR pameran tersedia di `http://localhost:8000/admin/booth` setelah login admin. QR dibangkitkan 100% lokal tanpa API pihak ketiga.
+
+Panduan deploy VPS dan booth offline ada di `docs/DEPLOYMENT.md`.
 
 ## Pemeriksaan Kualitas
 
@@ -73,10 +95,12 @@ Tes terhadap MySQL 8.4:
 composer test:mysql
 ```
 
-Gabungan:
+Gabungan penuh (Pint, TypeScript, build, Pest SQLite + MySQL):
 
 ```bash
 composer ci:check:full
 ```
+
+Wajib lulus sebelum merge ke `main`.
 
 Container init script membuat database `techmind_test` untuk pengujian MySQL.

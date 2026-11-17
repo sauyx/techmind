@@ -2,6 +2,11 @@
 
 Maksimal 8 sesi implementasi. Setiap sesi memiliki tujuan, file yang disentuh, kriteria selesai, dan test wajib.
 
+## Status Akhir
+
+Sesi 0–7 selesai. Bukti: `composer ci:check:full` lulus, demo seeder dan booth QR aktif, halaman error kustom tersedia, audit aset runtime menunjukkan 0 CDN eksternal.
+
+
 ## Sesi 1 — Fondasi Proyek
 
 Status: selesai (bukti: Docker MySQL healthy di port 3309; migrate:fresh --seed sukses; composer ci:check lulus: 43 passed, 2 skipped; npm run build sukses).
@@ -46,7 +51,8 @@ Status: selesai (bukti: Docker MySQL healthy di port 3309; migrate:fresh --seed 
 - Test: feature PDF response, feedback validation.
 - Branch: `feat/result-ai-pdf`.
 
-## Sesi 7 — Admin CRUD & Statistik
+## Sesi 7 — Admin CRUD, Statistik, Final Polish & Booth
+- Status: selesai (admin CRUD, statistik, ekspor CSV, QR booth, mode demo, error pages, audit CDN, dan panduan deployment tersedia).
 - Tujuan: login admin, CRUD kriteria/karier/profil, statistik, ekspor feedback.
 - File: `Admin/*Controller`, `Pages/Admin/*`, services admin.
 - Kriteria selesai: admin dapat kelola data dan melihat statistik.
@@ -54,6 +60,7 @@ Status: selesai (bukti: Docker MySQL healthy di port 3309; migrate:fresh --seed 
 - Branch: boleh digabung dengan Sesi 8 (`feat/admin-demo`).
 
 ## Sesi 8 — Demo Mode, Polish, Uji Stabilitas
+- Status: selesai (DemoSeeder, `techmind:seed-demo`, dan polish UI terserap ke Sesi 7 final).
 - Tujuan: seeder demo, akun admin demo, polish UI, uji beban/koneksi, checklist deploy.
 - File: seeder, factories, docs deployment, cache/rate limit final.
 - Kriteria selesai: `migrate:fresh --seed` menghasilkan demo lengkap; suite test hijau; lint/typecheck hijau.
@@ -87,3 +94,10 @@ Status: selesai (bukti: Docker MySQL healthy di port 3309; migrate:fresh --seed 
 - Alur tes publik selesai: mulai sesi anonim, kuesioner 3 langkah, submit jawaban, snapshot jawaban dan hasil.
 - Halaman hasil selesai: ranking 10 karier, radar profil, gap analysis, penjelasan template, detail karier.
 - Belum: ekspor PDF, feedback pengunjung, integrasi AI nyata, admin CRUD.
+
+## Catatan Sesi 7 Final
+
+- Halaman `/admin/booth` menyediakan QR code yang dibangkitkan lokal untuk URL aplikasi.
+- `DemoSeeder` membuat 18 sesi demo, penjelasan template, dan tanggapan pengunjung.
+- `TECHMIND_DEMO_MODE` mengontrol tombol simulasi cepat dan penolakan seeder di production.
+- `docs/DEPLOYMENT.md` berisi panduan Nginx, MySQL, SSL, dan cadangan booth offline.
