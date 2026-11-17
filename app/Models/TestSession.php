@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class TestSession extends Model
 {
@@ -31,5 +32,15 @@ class TestSession extends Model
     public function results(): HasMany
     {
         return $this->hasMany(TestResult::class)->orderBy('rank');
+    }
+
+    public function aiExplanation(): HasOne
+    {
+        return $this->hasOne(AiExplanation::class);
+    }
+
+    public function feedback(): HasOne
+    {
+        return $this->hasOne(VisitorFeedback::class);
     }
 }

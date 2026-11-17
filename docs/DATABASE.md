@@ -252,3 +252,33 @@ Tabel yang ditambahkan:
 - `test_results` (ranking JSON, karier teratas, method code)
 
 `visitor_feedbacks` dan `ai_explanations` masih ditunda.
+
+## 8. Status Implementasi Sesi 5
+
+Tabel yang ditambahkan pada Sesi 5:
+
+### ai_explanations (implementasi)
+- `id` bigint PK
+- `test_session_id` bigint FK -> `test_sessions.id` (cascade delete), **unique** — satu penjelasan per sesi tes.
+- `driver_used` varchar(32): `template`, `openai_compatible`, `fallback_template`.
+- `model_name` varchar nullable.
+- `content` text — narasi Bahasa Indonesia, 2–3 paragraf.
+- `is_fallback` boolean default false.
+- `latency_ms` int unsigned nullable.
+- `created_at`, `updated_at` timestamp.
+
+### visitor_feedbacks (implementasi)
+- `id` bigint PK
+- `test_session_id` bigint FK -> `test_sessions.id` (cascade delete), **unique** — satu penilaian per sesi tes; dapat diperbarui.
+- `score` tinyint unsigned 0..100 (CHECK constraint pada MySQL; validasi aplikasi pada SQLite).
+- `comment` text nullable.
+- `suggestion` text nullable.
+- `created_at`, `updated_at` timestamp.
+
+Penyesuaian terhadap ERD awal di atas:
+- Relation `ai_explanations` dan `visitor_feedbacks` langsung ke `test_sessions`, bukan ke `test_results`, karena snapshot hasil sudah disimpan per sesi.
+- `ai_explanations` memakai `driver_used` + `is_fallback`, bukan `provider`/`status`/`prompt_version`. Prompt dan privasi diatur di kode/config, bukan kolom DB.
+- `visitor_feedbacks` tidak menyimpan `ip_hash` maupun `test_result_id` (privasi D-15).
+- `score` memakai skala 0..100 sesuai permintaan Sesi 5.
+
+Tidak ada kolom baru pada tabel hasil; snapshot Sesi 4 tetap dipakai.

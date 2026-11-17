@@ -1,5 +1,5 @@
-import { Head, Link } from '@inertiajs/react';
-import { useState } from 'react';
+import { Head, Link, useForm } from '@inertiajs/react';
+import { useState, type FormEvent } from 'react';
 import {
     PolarAngleAxis,
     PolarGrid,
@@ -45,6 +45,19 @@ type CareerDetail = {
     profiles: Record<string, number>;
 };
 
+type AiExplanation = {
+    content: string;
+    driver_used: string;
+    is_fallback: boolean;
+    source_label: string;
+};
+
+type VisitorFeedback = {
+    score: number;
+    comment: string | null;
+    suggestion: string | null;
+};
+
 type Props = {
     session: {
         token: string;
@@ -55,7 +68,8 @@ type Props = {
     ratings: Record<string, number>;
     criteria: Criterion[];
     careers: CareerDetail[];
-    explanation: string;
+    ai_explanation: AiExplanation;
+    visitor_feedback: VisitorFeedback | null;
 };
 
 export default function ResultPage({
@@ -64,12 +78,26 @@ export default function ResultPage({
     ratings,
     criteria,
     careers,
-    explanation,
+    ai_explanation,
+    visitor_feedback,
 }: Props) {
     const topResult = results[0];
     const [selectedCode, setSelectedCode] = useState(topResult?.career_code ?? '');
     const [copied, setCopied] = useState(false);
-    const [selectedRadarIndex, setSelectedRadarIndex] = useState(0);
+    const feedbackForm = useForm({
+        score: visitor_feedback?.score ?? 85,
+        comment: visitor_feedback?.comment ?? '',
+        suggestion: visitor_feedback?.suggestion ?? '',
+    });
+    const [feedbackSubmitted, setFeedbackSubmitted] = useState(visitor_feedback !== null);
+
+    function submitFeedback(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        feedbackForm.post(`/hasil/${session.token}/feedback`, {
+            preserveScroll: true,
+            onSuccess: () => setFeedbackSubmitted(true),
+        });
+    }
 
     const selectedResult = results.find((item) => item.career_code === selectedCode) ?? topResult;
     const selectedCareer = careers.find((career) => career.code === selectedCode) ?? careers[0];
@@ -116,6 +144,9 @@ export default function ResultPage({
                             </Button>
                             <Button asChild variant="outline">
                                 <Link href="/tes">Ulangi Tes</Link>
+                            </Button>
+                            <Button asChild>
+                                <a href={`/hasil/${session.token}/pdf`}>Unduh PDF</a>
                             </Button>
                         </div>
                     </section>
@@ -346,14 +377,99 @@ export default function ResultPage({
                         </p>
                     </section>
 
-                    <section className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50 p-6">
-                        <h2 className="text-lg font-semibold text-zinc-950">Ringkasan Analisis Personal</h2>
-                        <p className="mt-2 text-sm leading-6 text-zinc-600">
-                            {explanation}
+                    <section className="rounded-xl border border-zinc-200 bg-white p-6">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-lg font-semibold text-zinc-950">Ringkasan Analisis Personal</h2>
+                            <span className="rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-brand">
+                                {ai_explanation.source_label}
+                            </span>
+                        </div>
+                        <p className="mt-3 whitespace-pre-line text-sm leading-7 text-zinc-700">
+                            {ai_explanation.content}
                         </p>
-                        <p className="mt-3 text-xs text-zinc-500">
-                            Ringkasan ini akan diperkaya oleh mesin penjelasan otomatis pada sesi berikutnya.
+                        {ai_explanation.is_fallback ? (
+                            <p className="mt-3 text-xs text-zinc-500">
+                                Ringkasan disusun dari template lokal karena layanan AI tidak tersedia.
+                            </p>
+                        ) : null}
+                    </section>
+
+                    <section className="rounded-xl border border-zinc-200 bg-white p-6">
+                        <h2 className="text-lg font-semibold text-zinc-950">Penilaian Pengunjung</h2>
+                        <p className="mt-1 text-sm leading-6 text-zinc-600">
+                            Bantu kami meningkatkan kualitas analisis dengan memberikan penilaian singkat.
                         </p>
+                        <form onSubmit={submitFeedback} className="mt-4 space-y-4">
+                            <div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <label htmlFor="feedback-score" className="font-medium text-zinc-950">
+                                        Skor kepuasan
+                                    </label>
+                                    <span className="text-zinc-600">{feedbackForm.data.score}/100</span>
+                                </div>
+                                <input
+                                    id="feedback-score"
+                                    name="score"
+                                    type="range"
+                                    min={0}
+                                    max={100}
+                                    value={feedbackForm.data.score}
+                                    onChange={(event) => feedbackForm.setData('score', Number(event.target.value))}
+                                    className="mt-2 w-full accent-brand"
+                                />
+                                <div className="mt-2 flex flex-wrap gap-2">
+                                    {[75, 85, 95, 100].map((preset) => (
+                                        <button
+                                            key={preset}
+                                            type="button"
+                                            onClick={() => feedbackForm.setData('score', preset)}
+                                            className={`min-h-9 rounded-md border px-3 text-sm transition-colors ${feedbackForm.data.score === preset ? 'border-brand bg-brand/5 text-brand' : 'border-zinc-300 text-zinc-700'}`}
+                                        >
+                                            {preset}
+                                        </button>
+                                    ))}
+                                </div>
+                                {feedbackForm.errors.score ? (
+                                    <p className="mt-2 text-sm text-red-600">{feedbackForm.errors.score}</p>
+                                ) : null}
+                            </div>
+                            <div>
+                                <label htmlFor="feedback-comment" className="text-sm font-medium text-zinc-950">
+                                    Tanggapan (opsional)
+                                </label>
+                                <textarea
+                                    id="feedback-comment"
+                                    name="comment"
+                                    rows={3}
+                                    maxLength={1000}
+                                    value={feedbackForm.data.comment}
+                                    onChange={(event) => feedbackForm.setData('comment', event.target.value)}
+                                    className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="feedback-suggestion" className="text-sm font-medium text-zinc-950">
+                                    Saran perbaikan (opsional)
+                                </label>
+                                <textarea
+                                    id="feedback-suggestion"
+                                    name="suggestion"
+                                    rows={3}
+                                    maxLength={1000}
+                                    value={feedbackForm.data.suggestion}
+                                    onChange={(event) => feedbackForm.setData('suggestion', event.target.value)}
+                                    className="mt-2 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/20"
+                                />
+                            </div>
+                            <div className="flex flex-wrap items-center gap-3">
+                                <Button type="submit" disabled={feedbackForm.processing}>
+                                    {feedbackForm.processing ? 'Mengirim...' : 'Kirim Penilaian'}
+                                </Button>
+                                {feedbackSubmitted ? (
+                                    <p className="text-sm font-medium text-brand">Penilaian terkirim. Terima kasih.</p>
+                                ) : null}
+                            </div>
+                        </form>
                     </section>
                 </div>
             </PublicLayout>

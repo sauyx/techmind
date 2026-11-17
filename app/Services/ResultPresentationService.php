@@ -4,7 +4,9 @@ namespace App\Services;
 
 use App\Contracts\CareerRepository;
 use App\Contracts\CriterionRepository;
+use App\Contracts\VisitorFeedbackRepository;
 use App\Models\TestSession;
+use App\Services\Ai\ExplanationService;
 
 class ResultPresentationService
 {
@@ -26,6 +28,8 @@ class ResultPresentationService
     public function __construct(
         private CriterionRepository $criteria,
         private CareerRepository $careers,
+        private ExplanationService $explanations,
+        private VisitorFeedbackRepository $feedbacks,
     ) {}
 
     public function formatSession(TestSession $session): array
@@ -88,7 +92,8 @@ class ResultPresentationService
             ];
         })->values()->all();
 
-        $explanation = $this->buildExplanation($topResult);
+        $aiExplanation = $this->explanations->getOrCreate($session);
+        $feedback = $this->feedbacks->findForSession($session);
 
         return [
             'session' => [
@@ -100,7 +105,19 @@ class ResultPresentationService
             'ratings' => $ratings,
             'criteria' => $criteriaList,
             'careers' => $careerDetails,
-            'explanation' => $explanation,
+            'ai_explanation' => [
+                'content' => (string) $aiExplanation->content,
+                'driver_used' => (string) $aiExplanation->driver_used,
+                'is_fallback' => (bool) $aiExplanation->is_fallback,
+                'source_label' => $aiExplanation->driver_used === 'openai_compatible' && ! $aiExplanation->is_fallback
+                    ? 'Analisis AI'
+                    : 'Analisis Ringkas',
+            ],
+            'visitor_feedback' => $feedback ? [
+                'score' => (int) $feedback->score,
+                'comment' => $feedback->comment,
+                'suggestion' => $feedback->suggestion,
+            ] : null,
         ];
     }
 
