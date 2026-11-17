@@ -16,6 +16,14 @@ Route::post('/tes', [TestController::class, 'store'])
 Route::get('/hasil/{token}', [ResultController::class, 'show'])
     ->name('results.show');
 
+Route::get('/hasil/{token}/pdf', [ResultController::class, 'downloadPdf'])
+    ->name('results.pdf')
+    ->middleware('throttle:20,1');
+
+Route::post('/hasil/{token}/feedback', [ResultController::class, 'storeFeedback'])
+    ->name('results.feedback')
+    ->middleware('throttle:20,1');
+
 Route::middleware(['auth', 'verified', 'admin'])->group(function () {
     Route::inertia('admin', 'admin/dashboard')->name('admin.dashboard');
 });
