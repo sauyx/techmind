@@ -3,8 +3,8 @@
 ## 1. Stack (Jangan Diubah Tanpa Alasan Kuat)
 
 - Laravel 13, PHP 8.4
-- Inertia.js + React + TypeScript
-- Vite, Tailwind CSS 3
+- Inertia.js 3 + React + TypeScript
+- Vite, Tailwind CSS 4
 - MySQL 8.4
 - Pest
 - Node 24 (tersedia di mesin)
