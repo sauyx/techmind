@@ -1,0 +1,3 @@
+CREATE DATABASE IF NOT EXISTS techmind_test;
+GRANT ALL PRIVILEGES ON techmind_test.* TO 'techmind'@'%';
+FLUSH PRIVILEGES;

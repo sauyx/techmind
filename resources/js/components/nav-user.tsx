@@ -12,7 +12,7 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import { UserInfo } from '@/components/user-info';
-import { UserMenuContent } from '@/components/user-menu-content';
+import { Link } from '@inertiajs/react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 export function NavUser() {
@@ -49,7 +49,7 @@ export function NavUser() {
                                   : 'bottom'
                         }
                     >
-                        <UserMenuContent user={auth.user} />
+                        <Link href="/logout" method="post" as="button" className="block w-full px-2 py-1.5 text-left text-sm">Logout</Link>
                     </DropdownMenuContent>
                 </DropdownMenu>
             </SidebarMenuItem>
