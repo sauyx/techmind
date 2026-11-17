@@ -6,6 +6,7 @@ use App\Contracts\CareerRepository;
 use App\Contracts\CriterionRepository;
 use App\Contracts\TestSessionRepositoryInterface;
 use App\Models\TestSession;
+use App\Services\Spk\GapAnalyzer;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -16,6 +17,7 @@ class TestSubmissionService
         private CareerRepository $careers,
         private TestSessionRepositoryInterface $sessions,
         private RecommendationService $recommendation,
+        private GapAnalyzer $gapAnalyzer,
     ) {}
 
     /**
@@ -59,6 +61,15 @@ class TestSubmissionService
 
         $careersByCode = $this->careers->allWithProfiles()->keyBy('code');
 
+        $profilesByCareer = [];
+        foreach ($careersByCode as $code => $career) {
+            $scores = [];
+            foreach ($career->careerProfiles as $profile) {
+                $scores[(string) $profile->criterion->code] = (int) $profile->score;
+            }
+            $profilesByCareer[$code] = $scores;
+        }
+
         $answersSnapshot = [];
         foreach ($activeCriteria as $criterion) {
             $code = (string) $criterion->code;
@@ -76,10 +87,13 @@ class TestSubmissionService
             $careerCode = (string) $ranking['career_code'];
             $career = $careersByCode->get($careerCode);
 
-            $gapSummary = null;
-            if ((int) $ranking['rank'] <= 3) {
-                $gapSummary = $recommendation['gap_analysis'][$careerCode] ?? null;
-            }
+            $gapForCareer = $this->gapAnalyzer->analyze(
+                [$ranking],
+                $normalizedRatings,
+                $profilesByCareer
+            );
+
+            $gapSummary = $gapForCareer[$careerCode] ?? null;
 
             $resultsSnapshot[] = [
                 'career_id' => $career?->id,

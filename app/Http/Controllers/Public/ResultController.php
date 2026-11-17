@@ -4,39 +4,26 @@ namespace App\Http\Controllers\Public;
 
 use App\Contracts\TestSessionRepositoryInterface;
 use App\Http\Controllers\Controller;
+use App\Services\ResultPresentationService;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ResultController extends Controller
 {
     public function __construct(
         private TestSessionRepositoryInterface $sessions,
+        private ResultPresentationService $presentation,
     ) {}
 
-    public function show(string $token)
+    public function show(string $token): Response
     {
         $session = $this->sessions->findByTokenWithDetails($token);
         if (! $session) {
             abort(404);
         }
 
-        $topResults = $session->results
-            ->take(3)
-            ->map(fn ($result) => [
-                'rank' => (int) $result->rank,
-                'career_code' => $result->career_code,
-                'career_name' => $result->career_name,
-                'match_percentage' => (float) $result->match_percentage,
-            ])
-            ->values()
-            ->all();
+        $props = $this->presentation->formatSession($session);
 
-        return Inertia::render('public/result-placeholder', [
-            'session' => [
-                'token' => $session->token,
-                'visitor_name' => $session->visitor_name,
-                'completed_at' => $session->completed_at?->toIso8601String(),
-            ],
-            'top_results' => $topResults,
-        ]);
+        return Inertia::render('public/result', $props);
     }
 }

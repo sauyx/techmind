@@ -118,7 +118,7 @@ class QuestionnaireFlowTest extends TestCase
             ->assertSessionHasErrors('ratings');
     }
 
-    public function test_result_placeholder_page_shows_top_three(): void
+    public function test_result_page_renders_full_results(): void
     {
         $ratings = $this->validRatings();
 
@@ -133,8 +133,11 @@ class QuestionnaireFlowTest extends TestCase
 
         $response->assertOk();
         $response->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('public/result-placeholder')
-            ->has('top_results', 3)
+            ->component('public/result')
+            ->has('results', 10)
+            ->has('criteria', 12)
+            ->has('careers', 10)
+            ->has('explanation')
         );
     }
 
