@@ -15,6 +15,19 @@ class ReferenceDataSeeder extends Seeder
         $careersData = require database_path('seeders/data/careers.php');
         $profilesData = require database_path('seeders/data/career_profiles.php');
 
+        // Sinkronisasi data referensi. Aman selama belum ada tabel hasil tes.
+        // Setelah tabel hasil ada, penghapusan diganti is_active=false.
+        $validCriterionCodes = array_column($criteriaData, 'code');
+        $validCareerCodes = array_column($careersData, 'code');
+
+        \App\Models\CareerProfile::query()
+            ->whereHas('criterion', fn ($q) => $q->whereNotIn('code', $validCriterionCodes))
+            ->orWhereHas('career', fn ($q) => $q->whereNotIn('code', $validCareerCodes))
+            ->delete();
+
+        \App\Models\Criterion::query()->whereNotIn('code', $validCriterionCodes)->delete();
+        \App\Models\Career::query()->whereNotIn('code', $validCareerCodes)->delete();
+
         foreach ($criteriaData as $data) {
             Criterion::query()->updateOrCreate(
                 ['code' => $data['code']],
