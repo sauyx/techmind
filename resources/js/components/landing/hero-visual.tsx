@@ -67,19 +67,19 @@ export function HeroVisual() {
         <div className="relative w-full">
             <div
                 aria-hidden="true"
-                className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-b from-indigo-50/70 via-white/40 to-transparent blur-2xl"
+                className="absolute -inset-4 -z-10 rounded-[2rem] bg-gradient-to-b from-indigo-100/80 via-indigo-50/40 to-transparent blur-2xl"
             />
-            <div className="rounded-2xl border border-zinc-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_24px_60px_-32px_rgba(24,24,27,0.18)] transition-all duration-200 hover:border-zinc-300 sm:p-6">
+            <div className="rounded-[24px] border border-zinc-200/80 bg-white/90 p-5 shadow-[0_1px_2px_rgba(15,23,42,0.04),0_24px_80px_-36px_rgba(79,70,229,0.35)] backdrop-blur-sm sm:p-6">
                 <div className="flex items-start justify-between gap-3 border-b border-zinc-200/80 pb-4">
                     <div>
-                        <p className="text-[11px] font-semibold tracking-[0.08em] text-zinc-500 uppercase">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
                             Simulasi hasil
                         </p>
-                        <p className="mt-1 text-sm font-semibold tracking-[-0.015em] text-zinc-950">
+                        <p className="mt-1 text-sm font-semibold tracking-[-0.03em] text-zinc-950">
                             Pratinjau kartu analisis
                         </p>
                     </div>
-                    <span className="rounded-full border border-indigo-600/15 bg-indigo-50/70 px-2.5 py-1 text-[10px] font-semibold tracking-[0.08em] text-indigo-700 uppercase">
+                    <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-brand">
                         Interaktif
                     </span>
                 </div>
@@ -99,10 +99,10 @@ export function HeroVisual() {
                                 role="tab"
                                 aria-selected={isActive}
                                 onClick={() => setActive(key)}
-                                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:outline-none ${
+                                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50 ${
                                     isActive
                                         ? 'bg-zinc-950 text-white shadow-sm'
-                                        : 'border border-zinc-200/80 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-950'
+                                        : 'border border-zinc-200 bg-white text-zinc-600 hover:border-zinc-300 hover:text-zinc-950'
                                 }`}
                             >
                                 {profiles[key].shortLabel}
@@ -122,22 +122,20 @@ export function HeroVisual() {
                             </span>
                             <div className="h-2 overflow-hidden rounded-full bg-zinc-100">
                                 <div
-                                    className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-[width] duration-500 ease-out"
-                                    style={{
-                                        width: `${(item.value / 5) * 100}%`,
-                                    }}
+                                    className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-indigo-600 transition-[width] duration-700 ease-out"
+                                    style={{ width: `${(item.value / 5) * 100}%` }}
                                 />
                             </div>
-                            <span className="text-right text-xs font-semibold text-zinc-950 tabular-nums">
+                            <span className="text-right text-xs font-semibold tabular-nums text-zinc-950">
                                 {item.value}/5
                             </span>
                         </div>
                     ))}
                 </div>
 
-                <div className="rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-4 transition-all duration-200">
-                    <div className="flex items-center justify-between">
-                        <p className="text-[11px] font-semibold tracking-[0.08em] text-zinc-500 uppercase">
+                <div className="rounded-2xl border border-zinc-200 bg-zinc-50/80 p-4">
+                    <div className="flex items-center justify-between gap-2">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-500">
                             Peringkat simulasi
                         </p>
                         <span className="text-[10px] font-medium text-zinc-400">
@@ -150,21 +148,21 @@ export function HeroVisual() {
                                 key={item.name}
                                 className="grid grid-cols-[22px_1fr_48px] items-center gap-3"
                             >
-                                <span className="text-xs font-semibold text-zinc-400 tabular-nums">
+                                <span className="text-xs font-semibold tabular-nums text-zinc-400">
                                     {String(index + 1).padStart(2, '0')}
                                 </span>
                                 <div className="min-w-0">
                                     <p className="truncate text-xs font-medium text-zinc-950">
                                         {item.name}
                                     </p>
-                                    <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-zinc-200/80">
+                                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-zinc-200/80">
                                         <div
-                                            className="h-1.5 rounded-full bg-brand/80 transition-[width] duration-500 ease-out"
+                                            className="h-1.5 rounded-full bg-gradient-to-r from-brand to-indigo-600 transition-[width] duration-700 ease-out"
                                             style={{ width: `${item.score}%` }}
                                         />
                                     </div>
                                 </div>
-                                <span className="text-right text-xs font-semibold text-zinc-950 tabular-nums">
+                                <span className="text-right text-xs font-semibold tabular-nums text-zinc-950">
                                     {item.score}%
                                 </span>
                             </div>

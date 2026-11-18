@@ -1,4 +1,7 @@
 import { ChevronDown } from 'lucide-react';
+import { useState } from 'react';
+import { cn } from '@/lib/utils';
+import { SectionHeading } from './section-heading';
 
 const items = [
     {
@@ -28,39 +31,66 @@ const items = [
 ];
 
 export function Faq() {
+    const [openIndex, setOpenIndex] = useState<number | null>(0);
+
     return (
         <section
             id="faq"
             className="scroll-mt-20 border-t border-zinc-200/80 bg-zinc-50/80"
         >
-            <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-20">
-                <div className="max-w-2xl">
-                    <p className="text-[11px] font-semibold tracking-[0.08em] text-brand uppercase">
-                        FAQ
-                    </p>
-                    <h2 className="mt-3 text-3xl font-semibold tracking-[-0.025em] text-zinc-950 sm:text-4xl">
-                        Pertanyaan yang sering diajukan
-                    </h2>
-                </div>
+            <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:py-24">
+                <SectionHeading
+                    eyebrow="FAQ"
+                    title="Pertanyaan yang sering diajukan"
+                />
 
                 <div className="mt-10 space-y-2.5">
-                    {items.map((item) => (
-                        <details
-                            key={item.question}
-                            className="group rounded-xl border border-zinc-200/80 bg-white px-5 py-4 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-200 open:border-zinc-300 hover:border-zinc-300"
-                        >
-                            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-sm font-semibold text-zinc-950 focus-visible:ring-2 focus-visible:ring-indigo-500/40 focus-visible:ring-offset-2 focus-visible:outline-none">
-                                <span>{item.question}</span>
-                                <ChevronDown
-                                    className="size-4 shrink-0 text-zinc-400 transition-transform duration-200 group-open:rotate-180"
-                                    aria-hidden="true"
-                                />
-                            </summary>
-                            <p className="mt-3 max-w-3xl text-sm leading-relaxed text-zinc-600">
-                                {item.answer}
-                            </p>
-                        </details>
-                    ))}
+                    {items.map((item, index) => {
+                        const isOpen = openIndex === index;
+
+                        return (
+                            <div
+                                key={item.question}
+                                className="overflow-hidden rounded-[20px] border border-zinc-200/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_10px_20px_-18px_rgba(15,23,42,0.25)]"
+                            >
+                                <button
+                                    type="button"
+                                    className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-semibold text-zinc-950 transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand/50"
+                                    aria-expanded={isOpen}
+                                    aria-controls={`faq-panel-${index}`}
+                                    onClick={() =>
+                                        setOpenIndex((current) =>
+                                            current === index ? null : index,
+                                        )
+                                    }
+                                >
+                                    <span>{item.question}</span>
+                                    <ChevronDown
+                                        className={cn(
+                                            'size-4 shrink-0 text-zinc-400 transition-transform duration-200',
+                                            isOpen && 'rotate-180',
+                                        )}
+                                        aria-hidden="true"
+                                    />
+                                </button>
+                                <div
+                                    id={`faq-panel-${index}`}
+                                    className={cn(
+                                        'grid transition-all duration-300 ease-out',
+                                        isOpen
+                                            ? 'grid-rows-[1fr] opacity-100'
+                                            : 'grid-rows-[0fr] opacity-0',
+                                    )}
+                                >
+                                    <div className="overflow-hidden">
+                                        <p className="px-5 pb-4 text-sm leading-relaxed text-zinc-600">
+                                            {item.answer}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
             </div>
         </section>
