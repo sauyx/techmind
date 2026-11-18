@@ -20,6 +20,20 @@ services:
       retries: 10
       start_period: 30s
 
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: techmind-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
 volumes:
   techmind_mysql_data:
     name: techmind_mysql_data
