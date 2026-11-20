@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Career;
 use App\Models\Criterion;
+use App\Models\User;
 use Database\Seeders\ReferenceDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -39,7 +40,7 @@ class MatrixHealthPreviewTest extends TestCase
             ];
         })->values()->all();
 
-        $admin = \App\Models\User::factory()->create(['is_admin' => true, 'email_verified_at' => now()]);
+        $admin = User::factory()->create(['is_admin' => true, 'email_verified_at' => now()]);
 
         $response = $this->actingAs($admin)->postJson('/admin/kesehatan-matriks/preview', [
             'criteria' => $criteria,

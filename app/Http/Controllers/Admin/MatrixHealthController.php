@@ -102,10 +102,10 @@ class MatrixHealthController extends Controller
 
     private function referenceVersion(): int
     {
-        if (! \Illuminate\Support\Facades\Cache::has('techmind:ref:version')) {
-            \Illuminate\Support\Facades\Cache::put('techmind:ref:version', 1, 86400 * 30);
+        if (! Cache::has('techmind:ref:version')) {
+            Cache::put('techmind:ref:version', 1, 86400 * 30);
         }
 
-        return (int) \Illuminate\Support\Facades\Cache::get('techmind:ref:version', 1);
+        return (int) Cache::get('techmind:ref:version', 1);
     }
 }

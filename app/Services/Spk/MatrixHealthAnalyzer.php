@@ -209,6 +209,19 @@ class MatrixHealthAnalyzer
      */
     public function analyze(int $samples = 2000, int $seed = 42, ?array $criteria = null, ?array $careers = null): array
     {
+        if ($criteria === null || $careers === null) {
+            [$criteria, $careers] = $this->loadData();
+        }
+
+        if (count($careers) === 0) {
+            return [
+                'self_consistency' => [],
+                'nearest_neighbors' => [],
+                'robustness' => [],
+                'tie_cases' => ['cases' => [], 'max_top_tie_count' => 0, 'total_cases' => 0],
+            ];
+        }
+
         return [
             'self_consistency' => $this->selfConsistency($criteria, $careers),
             'nearest_neighbors' => $this->nearestNeighbors($criteria, $careers),

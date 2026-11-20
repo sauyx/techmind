@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Criterion;
 use App\Models\TestSession;
 use App\Models\User;
 use App\Models\VisitorFeedback;
@@ -56,7 +57,7 @@ class AdminSessionsTest extends TestCase
     private function validRatings(): array
     {
         $ratings = [];
-        foreach (\App\Models\Criterion::query()->pluck('code') as $index => $code) {
+        foreach (Criterion::query()->pluck('code') as $index => $code) {
             $ratings[$code] = [5, 4, 3, 2, 4, 3, 2, 5, 3, 4, 2, 3][$index % 12];
         }
 
