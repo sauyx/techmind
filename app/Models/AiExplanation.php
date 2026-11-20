@@ -13,8 +13,11 @@ class AiExplanation extends Model
     protected $fillable = [
         'test_session_id',
         'driver_used',
+        'status',
+        'attempts',
         'model_name',
         'content',
+        'error_message',
         'is_fallback',
         'latency_ms',
     ];
@@ -24,6 +27,7 @@ class AiExplanation extends Model
         return [
             'is_fallback' => 'boolean',
             'latency_ms' => 'integer',
+            'attempts' => 'integer',
         ];
     }
 

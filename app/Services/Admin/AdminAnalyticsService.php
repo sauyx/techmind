@@ -4,6 +4,7 @@ namespace App\Services\Admin;
 
 use App\Contracts\TestSessionRepositoryInterface;
 use App\Contracts\VisitorFeedbackRepository;
+use App\Contracts\AiExplanationRepository;
 use App\Models\VisitorFeedback;
 
 class AdminAnalyticsService
@@ -11,12 +12,15 @@ class AdminAnalyticsService
     public function __construct(
         private TestSessionRepositoryInterface $sessions,
         private VisitorFeedbackRepository $feedbacks,
+        private AiExplanationRepository $explanations,
     ) {}
 
     public function summary(): array
     {
         $distribution = $this->sessions->rankOneCareerCounts(10);
         $topCareer = $distribution[0] ?? null;
+
+        $aiSummary = $this->explanations->summary(7);
 
         return [
             'kpi' => [
@@ -25,6 +29,7 @@ class AdminAnalyticsService
                 'average_feedback_score' => $this->feedbacks->averageScore(),
                 'top_career' => $topCareer,
             ],
+            'ai_summary' => $aiSummary,
             'career_distribution' => $distribution,
             'recent_feedbacks' => $this->feedbacks->recentWithSessionAndTopResult(10)
                 ->map(fn (VisitorFeedback $feedback) => $this->mapFeedback($feedback))

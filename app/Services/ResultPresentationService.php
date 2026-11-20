@@ -32,7 +32,7 @@ class ResultPresentationService
         private VisitorFeedbackRepository $feedbacks,
     ) {}
 
-    public function formatSession(TestSession $session): array
+    public function formatSession(TestSession $session, bool $includeExplanation = true): array
     {
         $answers = $session->answers;
         $ratings = [];
@@ -105,10 +105,14 @@ class ResultPresentationService
             ];
         })->values()->all();
 
-        $aiExplanation = $this->explanations->getOrCreate($session);
         $feedback = $this->feedbacks->findForSession($session);
 
-        return [
+        $aiExplanation = null;
+        if ($includeExplanation) {
+            $aiExplanation = $this->explanations->getOrCreate($session);
+        }
+
+        $props = [
             'session' => [
                 'token' => (string) $session->token,
                 'visitor_name' => $session->visitor_name,
@@ -118,19 +122,35 @@ class ResultPresentationService
             'ratings' => $ratings,
             'criteria' => $criteriaList,
             'careers' => $careerDetails,
-            'ai_explanation' => [
+            'ai_explanation' => $aiExplanation ? [
                 'content' => (string) $aiExplanation->content,
                 'driver_used' => (string) $aiExplanation->driver_used,
                 'is_fallback' => (bool) $aiExplanation->is_fallback,
                 'source_label' => $aiExplanation->driver_used === 'openai_compatible' && ! $aiExplanation->is_fallback
                     ? 'Analisis AI'
                     : 'Analisis Ringkas',
-            ],
+            ] : null,
             'visitor_feedback' => $feedback ? [
                 'score' => (int) $feedback->score,
                 'comment' => $feedback->comment,
                 'suggestion' => $feedback->suggestion,
             ] : null,
+        ];
+
+        return $props;
+    }
+
+    public function formatAiExplanation(TestSession $session): array
+    {
+        $aiExplanation = $this->explanations->getOrCreate($session);
+
+        return [
+            'content' => (string) $aiExplanation->content,
+            'driver_used' => (string) $aiExplanation->driver_used,
+            'is_fallback' => (bool) $aiExplanation->is_fallback,
+            'source_label' => $aiExplanation->driver_used === 'openai_compatible' && ! $aiExplanation->is_fallback
+                ? 'Analisis AI'
+                : 'Analisis Ringkas',
         ];
     }
 

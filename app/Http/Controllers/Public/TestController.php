@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Public;
 use App\Contracts\CriterionRepository;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTestRequest;
+use App\Jobs\GenerateAiExplanation;
 use App\Services\TestSubmissionService;
 use Inertia\Inertia;
 
@@ -36,6 +37,8 @@ class TestController extends Controller
             $request->validated('visitor_name'),
             $request->validated('ratings')
         );
+
+        dispatch(new GenerateAiExplanation($session->token))->afterResponse();
 
         return redirect()->route('results.show', $session->token);
     }

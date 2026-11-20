@@ -12,6 +12,10 @@ use RuntimeException;
 
 final class OpenAiCompatibleExplainer implements AiExplainerInterface
 {
+    public int $lastAttempts = 1;
+
+    public ?string $lastError = null;
+
     public function explain(TestSession $session): AiExplanationResult
     {
         $baseUrl = (string) config('techmind.ai.base_url');
@@ -22,6 +26,8 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
         if ($baseUrl === '' || $apiKey === '' || $model === '') {
             throw new RuntimeException('Konfigurasi driver openai_compatible belum lengkap.');
         }
+
+        $startedAt = microtime(true);
 
         $ratings = [];
         foreach ($session->answers as $answer) {
@@ -46,17 +52,54 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
             : '';
         $user = 'Jawab hanya dengan paragraf penjelasan. Data anonim: skor kriteria 1-5 '.json_encode($ratings, JSON_THROW_ON_ERROR).' dan tiga karier teratas '.json_encode($topCareers, JSON_THROW_ON_ERROR).'.'.$tieNote;
 
-        $startedAt = microtime(true);
+        $deadline = microtime(true) + $timeout + 2;
+        $response = null;
+        $this->lastAttempts = 0;
+        $this->lastError = null;
 
-        $response = $this->client($timeout)->post(rtrim($baseUrl, '/').'/chat/completions', [
-            'model' => $model,
-            'messages' => [
-                ['role' => 'system', 'content' => $system],
-                ['role' => 'user', 'content' => $user],
-            ],
-            'max_tokens' => 350,
-            'temperature' => 0.4,
-        ]);
+        for ($attempt = 1; $attempt <= 2; $attempt++) {
+            $this->lastAttempts = $attempt;
+            $attemptTimeout = max(1, (int) floor($deadline - microtime(true)));
+            if ($attemptTimeout < 1) {
+                $attemptTimeout = 1;
+            }
+
+            try {
+                $response = $this->client($attemptTimeout)->post(rtrim($baseUrl, '/').'/chat/completions', [
+                    'model' => $model,
+                    'messages' => [
+                        ['role' => 'system', 'content' => $system],
+                        ['role' => 'user', 'content' => $user],
+                    ],
+                    'max_tokens' => 350,
+                    'temperature' => 0.4,
+                ]);
+            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+                $this->lastError = $e->getMessage();
+                if ($attempt < 2) {
+                    usleep(500000);
+                    continue;
+                }
+                throw new RuntimeException('Koneksi AI gagal: '.$this->lastError);
+            }
+
+            if ($response->successful()) {
+                break;
+            }
+
+            $status = $response->status();
+            $retryable = $status === 429 || $status >= 500;
+
+            if ($retryable && $attempt < 2) {
+                $this->lastError = 'HTTP '.$status;
+                usleep(500000);
+                continue;
+            }
+
+            $this->lastError = 'HTTP '.$status;
+            $response->throw();
+            break;
+        }
 
         $latencyMs = (int) round((microtime(true) - $startedAt) * 1000);
 
@@ -72,6 +115,9 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
             $model,
             false,
             $latencyMs,
+            'success',
+            $this->lastAttempts,
+            null,
         );
     }
 
