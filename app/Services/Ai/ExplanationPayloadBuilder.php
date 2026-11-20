@@ -104,7 +104,7 @@ class ExplanationPayloadBuilder
             }
             $kontribusiTeratas[] = [
                 'kriteria' => $codeToName[$code] ?? $code,
-                'rating_anda' => (int) ($ratings[$code] ?? 0),
+                'rating_anda' => (int) ($session->answers->firstWhere('criterion_code', $code)?->rating ?? 0),
                 'profil_karier' => $profileScore,
             ];
         }
