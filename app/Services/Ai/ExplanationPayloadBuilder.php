@@ -13,13 +13,15 @@ class ExplanationPayloadBuilder
         $topResult = $topResults->first();
         $topScore = (float) ($topResult?->saw_score ?? 0.0);
 
-        $tiedCareers = $session->results
+        $tiedResults = $session->results
             ->filter(fn ($result) => abs((float) $result->saw_score - $topScore) < 1e-9)
-            ->pluck('career_name')
-            ->values()
-            ->all();
+            ->values();
 
-        $isTiedTop = count($tiedCareers) > 1;
+        $isTiedTop = $tiedResults->count() > 1;
+
+        $tiedCareers = $isTiedTop
+            ? $tiedResults->pluck('career_name')->values()->all()
+            : [];
 
         $ratings = [];
         foreach ($session->answers as $answer) {
@@ -81,12 +83,39 @@ class ExplanationPayloadBuilder
             }
         }
 
+        $contributions = (array) ($topResult?->contribution_breakdown ?? []);
+        arsort($contributions);
+        $topContributionCodes = array_slice(array_keys($contributions), 0, 3);
+
+        $topCareerModel = null;
+        if ($topResult) {
+            $topCareerModel = $careerModels->get((string) $topResult->career_code);
+        }
+
+        $kontribusiTeratas = [];
+        foreach ($topContributionCodes as $code) {
+            $profileScore = 0;
+            if ($topCareerModel) {
+                foreach ($topCareerModel->careerProfiles as $profile) {
+                    if ($profile->criterion && (string) $profile->criterion->code === (string) $code) {
+                        $profileScore = (int) $profile->score;
+                    }
+                }
+            }
+            $kontribusiTeratas[] = [
+                'kriteria' => $codeToName[$code] ?? $code,
+                'rating_anda' => (int) ($ratings[$code] ?? 0),
+                'profil_karier' => $profileScore,
+            ];
+        }
+
         return [
             'is_tied_top' => $isTiedTop,
             'tied_careers' => $tiedCareers,
             'top_careers' => $topCareers,
             'kekuatan_pengguna' => $strengthNames,
             'area_pengembangan' => $development,
+            'kontribusi_teratas' => $kontribusiTeratas,
             'jawaban' => $ratings,
         ];
     }

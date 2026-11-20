@@ -131,26 +131,6 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
         return Http::timeout($timeout)->withToken((string) config('techmind.ai.api_key'))->acceptJson();
     }
 
-    private function parseJson(string $content): ?array
-    {
-        $content = trim($content);
-        $content = preg_replace('/^```json\s*/i', '', $content);
-        $content = preg_replace('/^```\s*/i', '', $content);
-        $content = preg_replace('/\s*```$/', '', $content);
-
-        $data = json_decode(trim($content), true);
-
-        if (! is_array($data)) {
-            return null;
-        }
-
-        if (! isset($data['ringkasan'], $data['alasan'], $data['langkah_awal'], $data['alternatif'])) {
-            return null;
-        }
-
-        return $data;
-    }
-
     private function extractContent(Response $response): ?string
     {
         $response->throw();
@@ -223,16 +203,23 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
         }
 
         $allowedPercentages = [];
+        $allowedRounded = [];
         foreach (($payload['top_careers'] ?? []) as $career) {
-            $allowedPercentages[(string) round((float) ($career['match_percentage'] ?? 0), 1)] = true;
+            $value = (float) ($career['match_percentage'] ?? 0);
+            $allowedPercentages[(string) $value] = true;
+            $allowedPercentages[str_replace('.', ',', (string) $value)] = true;
+            $allowedRounded[(string) round($value)] = true;
         }
 
         $allText = json_encode($data, JSON_UNESCAPED_UNICODE);
-        preg_match_all('/([0-9]+(?:\\.[0-9]+)?)(?:\\s*)%/', (string) $allText, $matches);
+        preg_match_all('/([0-9]+(?:[.,][0-9]+)?)(?:\s*)%/', (string) $allText, $matches);
         foreach ($matches[1] ?? [] as $percentage) {
-            if (! isset($allowedPercentages[$percentage])) {
-                throw new RuntimeException('invalid_output: persentase karangan '.$percentage.'%');
+            $normalized = str_replace(',', '.', $percentage);
+            $rounded = (string) round((float) $normalized);
+            if (isset($allowedPercentages[$normalized]) || isset($allowedPercentages[$percentage]) || isset($allowedRounded[$rounded])) {
+                continue;
             }
+            throw new RuntimeException('invalid_output: persentase karangan '.$percentage.'%');
         }
 
         return $data;

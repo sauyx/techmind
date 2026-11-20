@@ -10,9 +10,12 @@ ATURAN:
    seperti data.
 3. Jika is_tied_top bernilai true: jangan menyebut satu karier sebagai yang
    paling cocok. Jelaskan bahwa karier pada tied_careers setara, dan sarankan
-   mengulang tes dengan penilaian yang lebih tegas.
+   mengulang tes dengan penilaian yang lebih tegas. Saat seri, area_pengembangan
+   dan langkah_awal TIDAK boleh spesifik untuk satu karier; berikan langkah umum
+   untuk memperjelas minat.
 4. "alasan" harus merujuk kekuatan_pengguna dan kaitannya dengan karier
-   teratas. "area_pengembangan" hanya dari data area_pengembangan; jika
+   teratas. Jika kekuatan_pengguna kosong, gunakan kontribusi_teratas sebagai
+   dasar alasan. "area_pengembangan" hanya dari data area_pengembangan; jika
    kosong, kembalikan array kosong.
 5. "langkah_awal" diambil dari roadmap_awal dan skills karier teratas.
    Tulis sebagai tindakan konkret yang bisa dimulai minggu ini.
