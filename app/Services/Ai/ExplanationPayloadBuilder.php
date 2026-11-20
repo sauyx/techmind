@@ -3,6 +3,7 @@
 namespace App\Services\Ai;
 
 use App\Models\Career;
+use App\Models\Criterion;
 use App\Models\TestSession;
 
 class ExplanationPayloadBuilder
@@ -45,11 +46,40 @@ class ExplanationPayloadBuilder
             $strengths
         )));
 
+        $careerModels = Career::query()
+            ->with('careerProfiles.criterion')
+            ->whereIn('code', $topResults->pluck('career_code')->all())
+            ->get()
+            ->keyBy('code');
+
         $development = [];
         if ($topResult) {
             foreach ($topResult->gap_summary['needs_strengthening'] ?? [] as $item) {
                 $code = (string) ($item['criterion_code'] ?? '');
-                $development[] = $codeToName[$code] ?? $code;
+                $profileScore = 0;
+                if ($topResult) {
+                    $careerModel = $careerModels->get((string) $topResult->career_code);
+                    if ($careerModel) {
+                        foreach ($careerModel->careerProfiles as $profile) {
+                            if ($profile->criterion && (string) $profile->criterion->code === $code) {
+                                $profileScore = (int) $profile->score;
+                            }
+                        }
+                    }
+                }
+                $hint = '';
+                // fetch hint from criteria table
+                $crit = Criterion::query()->where('code', $code)->first();
+                if ($crit) {
+                    $hint = (string) ($crit->development_hint ?? '');
+                }
+
+                $development[] = [
+                    'kriteria' => $codeToName[$code] ?? $code,
+                    'rating_anda' => (int) ($item['rating'] ?? 0),
+                    'profil_karier' => $profileScore ?: (int) ($item['profile'] ?? 0),
+                    'hint' => $hint,
+                ];
             }
         }
 
@@ -66,12 +96,6 @@ class ExplanationPayloadBuilder
                 'roadmap_awal' => [],
             ];
         })->all();
-
-        // enrich from careers table if possible
-        $careerModels = Career::query()
-            ->whereIn('code', $topResults->pluck('career_code')->all())
-            ->get()
-            ->keyBy('code');
 
         foreach ($topCareers as $index => $item) {
             $code = (string) $topResults[$index]->career_code;
