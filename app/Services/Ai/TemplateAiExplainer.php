@@ -11,7 +11,7 @@ final class TemplateAiExplainer implements AiExplainerInterface
 {
     public function explain(TestSession $session): AiExplanationResult
     {
-        $payloadBuilder = new ExplanationPayloadBuilder();
+        $payloadBuilder = new ExplanationPayloadBuilder;
         $payload = $payloadBuilder->build($session);
 
         $topResults = $session->results->take(3)->values();
