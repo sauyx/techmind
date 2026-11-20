@@ -27,3 +27,9 @@ JANGAN gunakan `php artisan serve` untuk pameran. Gunakan nginx + php-fpm (Docke
 8. Set `TECHMIND_DEMO_MODE` sesuai kebutuhan (ON untuk demo, OFF untuk produksi)
 9. Pastikan `APP_DEBUG=false` di production
 10. Uji 1 alur lengkap (tes → hasil → PDF → feedback)
+
+## Rate limit & TrustProxies
+- Atur `TRUSTED_PROXIES` agar IP pengunjung dibaca dari `X-Forwarded-For` di belakang nginx/Caddy/Cloudflare. Untuk Docker internal, default aman mencakup jaringan private Docker.
+- Pastikan proxy mengirim `X-Forwarded-For`, `X-Forwarded-Proto`, dan `X-Forwarded-Host`.
+- Nilai `*` mempercayai semua proxy. Gunakan hanya bila edge dan sumber lalu lintas benar-benar dikontrol; nilai ini rentan spoofing IP bila aplikasi dapat diakses langsung.
+- Named limiter publik: `tes-submit` 6 per session/IP 120 per menit; `hasil-pdf` dan `feedback` 5 per token/IP 60 per menit. Nilai dapat diubah melalui env `RATE_TES_SESSION`, `RATE_TES_IP`, `RATE_PDF_TOKEN`, `RATE_PDF_IP`, `RATE_FEEDBACK_TOKEN`, dan `RATE_FEEDBACK_IP`.
