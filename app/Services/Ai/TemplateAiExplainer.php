@@ -74,12 +74,41 @@ final class TemplateAiExplainer implements AiExplainerInterface
             $alternatif = 'Karier-karier yang setara di atas layak Anda pertimbangkan bersama. Untuk hasil yang lebih tajam, ulangi tes dengan penilaian yang lebih tegas.';
         } elseif ($isTiedTop) {
             $ringkasan = 'Beberapa karier memiliki tingkat kecocokan yang sama, yaitu '.IndonesianText::joinList($tiedNames).', dengan tingkat kecocokan '.$percent.'. Hasil ini adalah rekomendasi awal untuk eksplorasi, bukan keputusan akhir.';
-            $alasan = $kekuatan !== []
-                ? array_map(fn ($name) => 'Anda menilai diri tinggi pada '.$name.' ('.($jawaban[$name] ?? '').'/5), dan kemampuan ini mendukung karier-karier yang setara di atas.', array_slice($kekuatan, 0, 3))
-                : [
-                    'Jawaban Anda cenderung merata pada beberapa kriteria utama, sehingga beberapa karier memperoleh skor yang sama.',
-                    'Perbedaan kecil antar kriteria membuat sistem belum bisa menentukan satu karier unggulan.',
-                ];
+            // common strengths across all tied careers
+            $tiedResultModels = $topResults->filter(fn ($r) => in_array($r->career_name, $tiedNames, true));
+            $commonStrengthCodes = null;
+            foreach ($tiedResultModels as $tr) {
+                $codes = array_column($tr->gap_summary['strengths'] ?? [], 'criterion_code');
+                if ($commonStrengthCodes === null) {
+                    $commonStrengthCodes = $codes;
+                } else {
+                    $commonStrengthCodes = array_values(array_intersect($commonStrengthCodes, $codes));
+                }
+            }
+            $commonStrengthNames = array_map(fn ($code) => $codeToName[$code] ?? $code, $commonStrengthCodes ?? []);
+
+            $alasan = [];
+            if ($commonStrengthNames !== []) {
+                foreach (array_slice($commonStrengthNames, 0, 3) as $name) {
+                    $alasan[] = 'Anda menilai diri tinggi pada '.$name.' ('.($jawaban[$name] ?? '').'/5), dan kemampuan ini mendukung karier-karier yang setara di atas.';
+                }
+            } else {
+                foreach ($tiedResultModels as $tr) {
+                    foreach ($tr->gap_summary['strengths'] ?? [] as $st) {
+                        $code = (string) ($st['criterion_code'] ?? '');
+                        $name = $codeToName[$code] ?? $code;
+                        $already = false;
+                        foreach ($alasan as $a) {
+                            if (str_contains($a, $name)) {
+                                $already = true;
+                            }
+                        }
+                        if (! $already) {
+                            $alasan[] = $name.' ('.($st['rating'] ?? ($jawaban[$name] ?? '')).'/5) sejalan dengan kebutuhan '.$tr->career_name.'.';
+                        }
+                    }
+                }
+            }
             if (count($alasan) < 2) {
                 $alasan[] = 'Perbedaan kecil antar kriteria membuat sistem belum bisa menentukan satu karier unggulan.';
             }
@@ -138,6 +167,8 @@ final class TemplateAiExplainer implements AiExplainerInterface
 
             // if fewer than 2, supplement from kontribusi_teratas
             if (count($alasan) < 2) {
+                $emptyStrengths = ($kekuatan === []);
+                $idx = 0;
                 foreach (array_slice($kontribusi, 0, 3) as $item) {
                     if (count($alasan) >= 3) {
                         break;
@@ -147,25 +178,30 @@ final class TemplateAiExplainer implements AiExplainerInterface
                         continue;
                     }
                     $ratingAnda = (string) ($item['rating_anda'] ?? '');
-                    $profil = (int) ($item['profil_karier'] ?? 0);
-                    if ($profil >= 4) {
-                        $frasa = 'termasuk inti pekerjaan';
-                    } elseif ($profil === 3) {
-                        $frasa = 'cukup dibutuhkan';
+                    if ($emptyStrengths) {
+                        if (count($alasan) === 0) {
+                            $alasan[] = 'Nilai Anda pada '.$kriteria.' ('.$ratingAnda.'/5) sudah memberi dasar yang sejalan dengan kebutuhan utama seorang '.$topName.'.';
+                        } elseif (count($alasan) === 1) {
+                            $alasan[] = 'Selain itu, '.$kriteria.' ('.$ratingAnda.'/5) juga menjadi bekal awal yang berguna dalam peran ini.';
+                        } else {
+                            $alasan[] = 'Anda juga memiliki dasar pada '.$kriteria.' ('.$ratingAnda.'/5), yang dapat dikembangkan lebih jauh sebagai '.$topName.'.';
+                        }
                     } else {
-                        $frasa = 'relevan';
-                    }
-                    // choose varied opening based on count
-                    if (count($alasan) === 0) {
-                        $alasan[] = 'Anda menilai diri tinggi pada '.$kriteria.' ('.$ratingAnda.'/5), dan kemampuan ini '.$frasa.' seorang '.$topName.'.';
-                    } elseif (count($alasan) === 1) {
-                        $alasan[] = 'Nilai '.$ratingAnda.'/5 pada '.$kriteria.' menunjukkan minat yang kuat, hal yang sangat dibutuhkan dalam peran ini.';
-                    } else {
-                        $alasan[] = $kriteria.' juga menjadi kekuatan Anda ('.$ratingAnda.'/5) dan sejalan dengan tuntutan sehari-hari seorang '.$topName.'.';
-                    }
-                    // if rating low (<=3), use kontribusi-specific phrasing
-                    if ((int) $ratingAnda <= 3) {
-                        $alasan[count($alasan) - 1] = 'Nilai Anda pada '.$kriteria.' ('.$ratingAnda.'/5) sudah memberi dasar yang sejalan dengan kebutuhan utama seorang '.$topName.'.';
+                        $profil = (int) ($item['profil_karier'] ?? 0);
+                        if ($profil >= 4) {
+                            $frasa = 'termasuk inti pekerjaan';
+                        } elseif ($profil === 3) {
+                            $frasa = 'cukup dibutuhkan';
+                        } else {
+                            $frasa = 'relevan';
+                        }
+                        if (count($alasan) === 0) {
+                            $alasan[] = 'Anda menilai diri tinggi pada '.$kriteria.' ('.$ratingAnda.'/5), dan kemampuan ini '.$frasa.' seorang '.$topName.'.';
+                        } elseif (count($alasan) === 1) {
+                            $alasan[] = 'Nilai '.$ratingAnda.'/5 pada '.$kriteria.' menunjukkan minat yang kuat, hal yang sangat dibutuhkan dalam peran ini.';
+                        } else {
+                            $alasan[] = $kriteria.' juga menjadi kekuatan Anda ('.$ratingAnda.'/5) dan sejalan dengan tuntutan sehari-hari seorang '.$topName.'.';
+                        }
                     }
                     $usedCriteria[] = $kriteria;
                 }

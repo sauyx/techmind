@@ -77,7 +77,7 @@ class ExplanationPayloadBuilder
                 $development[] = [
                     'kriteria' => $codeToName[$code] ?? $code,
                     'rating_anda' => (int) ($item['rating'] ?? 0),
-                    'profil_karier' => $profileScore ?: (int) ($item['profile'] ?? 0),
+                    'profil_karier' => $profileScore ?: (int) ($item['profile'] ?? 0), // profil dari career_profiles (fallback gap_summary)
                     'hint' => $hint,
                 ];
             }

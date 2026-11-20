@@ -7,6 +7,10 @@ services:
     volumes:
       - ./docker/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - app_public:/var/www/html/public:ro
+    deploy:
+      resources:
+        limits:
+          memory: 64m
     depends_on:
       - app
     restart: unless-stopped
@@ -19,6 +23,11 @@ services:
       - .env.production
     volumes:
       - app_public:/var/www/html/public
+      - ./docker/php-fpm/www.conf:/usr/local/etc/php-fpm.d/www.conf:ro
+    deploy:
+      resources:
+        limits:
+          memory: 800m
     depends_on:
       mysql:
         condition: service_healthy
@@ -32,7 +41,12 @@ services:
       MYSQL_PASSWORD: ${DB_PASSWORD:-secret}
       MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-secret}
     volumes:
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
       - mysql_data:/var/lib/mysql
+    deploy:
+      resources:
+        limits:
+          memory: 600m
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
