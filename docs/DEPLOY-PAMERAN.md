@@ -134,3 +134,8 @@ docker compose -f docker-compose.prod.yml exec -T mysql mysql -u root -psecret t
 10. Uji 1 alur lengkap (tes → hasil → PDF → feedback)
 11. H-1: `php artisan techmind:ai-check`
 12. H-1: `php artisan techmind:matrix-health`
+
+## Dev vs Prod
+- `.env` = development lokal: `APP_ENV=local`, `APP_DEBUG=true`, `DB_HOST=127.0.0.1`, `DB_PORT=3309`, `APP_URL=http://127.0.0.1:8000`. Jalankan: `php artisan serve` + `npm run dev`.
+- `.env.production` = production Docker: dibaca via `env_file:` di `docker-compose.prod.yml`. Jalankan: `docker compose -f docker-compose.prod.yml up -d`.
+- Project Docker prod memakai `name: techmind-prod` agar tidak bentrok dengan compose dev (`techmind`).

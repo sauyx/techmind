@@ -194,3 +194,8 @@ php artisan serve & npm run dev
 ## Lisensi
 
 Proyek ini berbasis Laravel React Starter Kit (MIT). Lihat `composer.json` untuk detail.
+
+## Dev vs Prod
+
+- `.env` = development lokal (`php artisan serve` + `npm run dev`).
+- `.env.production` = production Docker (`docker compose -f docker-compose.prod.yml up -d`).

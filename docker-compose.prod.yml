@@ -1,3 +1,4 @@
+name: techmind-prod
 services:
   nginx:
     image: nginx:1.27-alpine
