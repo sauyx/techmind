@@ -6,6 +6,7 @@ use App\Contracts\AiExplainerInterface;
 use App\Contracts\CriterionRepository;
 use App\Data\AiExplanationResult;
 use App\Models\TestSession;
+use App\Support\IndonesianText;
 
 final class TemplateAiExplainer implements AiExplainerInterface
 {
@@ -28,24 +29,23 @@ final class TemplateAiExplainer implements AiExplainerInterface
         $topCareers = (array) ($payload['top_careers'] ?? []);
         $topCareer = $topCareers[0] ?? [];
         $topName = (string) ($topCareer['name'] ?? $topResults->first()?->career_name ?? '');
-        $topPct = (string) ($topCareer['match_percentage'] ?? $topResults->first()?->match_percentage ?? '');
-        $summary = (string) ($topCareer['summary'] ?? '');
-        $skills = (array) ($topCareer['skills'] ?? []);
+        $topPct = (float) ($topCareer['match_percentage'] ?? $topResults->first()?->match_percentage ?? 0);
+        $summary = trim((string) ($topCareer['summary'] ?? ''));
+        if ($summary !== '' && ! str_ends_with($summary, '.')) {
+            $summary .= '.';
+        }
         $roadmap = (array) ($topCareer['roadmap_awal'] ?? []);
+        $skills = (array) ($topCareer['skills'] ?? []);
 
         $isTiedTop = (bool) ($payload['is_tied_top'] ?? false);
         $tiedNames = (array) ($payload['tied_careers'] ?? []);
         $allResultsCount = $session->results->count();
-        $tiedCount = count($tiedNames);
-        $seriSemua = $isTiedTop && $tiedCount > 0 && $tiedCount === $allResultsCount;
+        $seriSemua = $isTiedTop && count($tiedNames) > 0 && count($tiedNames) === $allResultsCount;
 
         $kekuatan = (array) ($payload['kekuatan_pengguna'] ?? []);
         $area = (array) ($payload['area_pengembangan'] ?? []);
         $kontribusi = (array) ($payload['kontribusi_teratas'] ?? []);
         $jawaban = (array) ($payload['jawaban'] ?? []);
-
-        $hash = hexdec(substr(hash('sha256', (string) $session->token), 0, 8));
-        $variant = $hash % 3;
 
         $criteriaRepo = app(CriterionRepository::class);
         $criteriaByCode = [];
@@ -56,6 +56,8 @@ final class TemplateAiExplainer implements AiExplainerInterface
         foreach ($session->answers as $answer) {
             $nameToCode[(string) $answer->criterion_name] = (string) $answer->criterion_code;
         }
+
+        $percent = IndonesianText::percent($topPct);
 
         if ($seriSemua) {
             $ringkasan = 'Semua karier memiliki tingkat kecocokan yang sama karena jawaban Anda bernilai merata, sehingga sistem belum bisa menentukan arah yang paling sesuai.';
@@ -71,7 +73,7 @@ final class TemplateAiExplainer implements AiExplainerInterface
             ];
             $alternatif = 'Karier-karier yang setara di atas layak Anda pertimbangkan bersama. Untuk hasil yang lebih tajam, ulangi tes dengan penilaian yang lebih tegas.';
         } elseif ($isTiedTop) {
-            $ringkasan = 'Beberapa karier memiliki tingkat kecocokan yang sama, yaitu '.implode(', ', $tiedNames).', dengan tingkat kecocokan '.$topPct.'%. Hasil ini adalah rekomendasi awal untuk eksplorasi, bukan keputusan akhir.';
+            $ringkasan = 'Beberapa karier memiliki tingkat kecocokan yang sama, yaitu '.IndonesianText::joinList($tiedNames).', dengan tingkat kecocokan '.$percent.'. Hasil ini adalah rekomendasi awal untuk eksplorasi, bukan keputusan akhir.';
             $alasan = $kekuatan !== []
                 ? array_map(fn ($name) => 'Anda menilai diri tinggi pada '.$name.' ('.($jawaban[$name] ?? '').'/5), dan kemampuan ini mendukung karier-karier yang setara di atas.', array_slice($kekuatan, 0, 3))
                 : [
@@ -92,7 +94,7 @@ final class TemplateAiExplainer implements AiExplainerInterface
             foreach (array_slice($tiedCareerModels, 0, 3) as $tc) {
                 $firstStep = $tc['roadmap_awal'][0] ?? '';
                 if ($firstStep !== '') {
-                    $langkah[] = 'Untuk '.$tc['name'].', mulai dari '.$firstStep.'.';
+                    $langkah[] = 'Untuk '.$tc['name'].', mulai dari '.IndonesianText::lcfirstSmart((string) $firstStep).'.';
                 }
             }
             if (count($langkah) < 2) {
@@ -101,53 +103,106 @@ final class TemplateAiExplainer implements AiExplainerInterface
             $langkah[] = 'Pilih karier yang paling menarik bagi Anda dan dalami langkah pertamanya.';
             $alternatif = 'Karier-karier yang setara di atas layak Anda pertimbangkan bersama. Untuk hasil yang lebih tajam, ulangi tes dengan penilaian yang lebih tegas.';
         } else {
-            $ringkasan = $topName.' menjadi karier yang paling sesuai dengan profil Anda, dengan tingkat kecocokan '.$topPct.'%.';
+            $ringkasan = $topName.' menjadi karier yang paling sesuai dengan profil Anda, dengan tingkat kecocokan '.$percent.'.';
             if ($summary !== '') {
-                $ringkasan .= ' '.$summary;
+                $ringkasan .= ' Secara singkat, peran ini '.IndonesianText::lcfirstSmart($summary);
             }
             $ringkasan .= ' Hasil ini adalah rekomendasi awal untuk eksplorasi, bukan keputusan akhir.';
 
             $alasan = [];
-            foreach (array_slice($kekuatan, 0, 3) as $name) {
+            $usedCriteria = [];
+            // strengths
+            foreach (array_slice($kekuatan, 0, 3) as $index => $name) {
                 $rating = $jawaban[$name] ?? '';
-                $alasan[] = 'Anda menilai diri tinggi pada '.$name.' ('.$rating.'/5), dan kemampuan ini termasuk inti pekerjaan seorang '.$topName.'.';
+                // determine profile >=4 (strength by definition) -> inti
+                $code = $nameToCode[$name] ?? '';
+                $profile = 4;
+                // try get actual profile from top career
+                $careerModel = null;
+                foreach ($topCareers as $tc) {
+                    if ($tc['name'] === $topName) {
+                        $careerModel = $tc;
+                    }
+                }
+                // profile >=4 assumed for strength
+                $frasa = $profile >= 4 ? 'termasuk inti pekerjaan' : 'cukup dibutuhkan';
+                if ($index === 0) {
+                    $alasan[] = 'Anda menilai diri tinggi pada '.$name.' ('.$rating.'/5), dan kemampuan ini '.$frasa.' seorang '.$topName.'.';
+                } elseif ($index === 1) {
+                    $alasan[] = 'Nilai '.$rating.'/5 pada '.$name.' menunjukkan minat yang kuat, hal yang sangat dibutuhkan dalam peran ini.';
+                } else {
+                    $alasan[] = $name.' juga menjadi kekuatan Anda ('.$rating.'/5) dan sejalan dengan tuntutan sehari-hari seorang '.$topName.'.';
+                }
+                $usedCriteria[] = $name;
             }
+
+            // if fewer than 2, supplement from kontribusi_teratas
             if (count($alasan) < 2) {
                 foreach (array_slice($kontribusi, 0, 3) as $item) {
                     if (count($alasan) >= 3) {
                         break;
                     }
                     $kriteria = (string) ($item['kriteria'] ?? '');
-                    $ratingAnda = (string) ($item['rating_anda'] ?? '');
-                    $profil = (string) ($item['profil_karier'] ?? '');
-                    if ($kriteria !== '') {
-                        $alasan[] = 'Kontribusi terbesar pada skor karier ini berasal dari '.$kriteria.' (rating Anda '.$ratingAnda.'/5, profil karier '.$profil.'/5).';
+                    if ($kriteria === '' || in_array($kriteria, $usedCriteria, true)) {
+                        continue;
                     }
+                    $ratingAnda = (string) ($item['rating_anda'] ?? '');
+                    $profil = (int) ($item['profil_karier'] ?? 0);
+                    if ($profil >= 4) {
+                        $frasa = 'termasuk inti pekerjaan';
+                    } elseif ($profil === 3) {
+                        $frasa = 'cukup dibutuhkan';
+                    } else {
+                        $frasa = 'relevan';
+                    }
+                    // choose varied opening based on count
+                    if (count($alasan) === 0) {
+                        $alasan[] = 'Anda menilai diri tinggi pada '.$kriteria.' ('.$ratingAnda.'/5), dan kemampuan ini '.$frasa.' seorang '.$topName.'.';
+                    } elseif (count($alasan) === 1) {
+                        $alasan[] = 'Nilai '.$ratingAnda.'/5 pada '.$kriteria.' menunjukkan minat yang kuat, hal yang sangat dibutuhkan dalam peran ini.';
+                    } else {
+                        $alasan[] = $kriteria.' juga menjadi kekuatan Anda ('.$ratingAnda.'/5) dan sejalan dengan tuntutan sehari-hari seorang '.$topName.'.';
+                    }
+                    // if rating low (<=3), use kontribusi-specific phrasing
+                    if ((int) $ratingAnda <= 3) {
+                        $alasan[count($alasan) - 1] = 'Nilai Anda pada '.$kriteria.' ('.$ratingAnda.'/5) sudah memberi dasar yang sejalan dengan kebutuhan utama seorang '.$topName.'.';
+                    }
+                    $usedCriteria[] = $kriteria;
                 }
             }
             if (count($alasan) < 2) {
                 $alasan[] = 'Profil jawaban Anda cukup selaras dengan kebutuhan karier '.$topName.'.';
             }
 
+            // area pengembangan (0-2), exclude used criteria
             $areaOut = [];
-            foreach (array_slice($area, 0, 2) as $name) {
-                $code = $nameToCode[$name] ?? '';
-                $criterion = $criteriaByCode[$code] ?? null;
-                $context = $criterion && ! empty($criterion->description)
-                    ? (string) $criterion->description
-                    : 'memperkuat area ini';
-                $areaOut[] = $name.' masih bisa ditingkatkan; seorang '.$topName.' perlu '.$context.'.';
+            foreach (array_slice($area, 0, 2) as $item) {
+                $name = is_array($item) ? (string) ($item['kriteria'] ?? '') : (string) $item;
+                if ($name === '' || in_array($name, $usedCriteria, true)) {
+                    continue;
+                }
+                $hint = is_array($item) ? (string) ($item['hint'] ?? '') : '';
+                if ($hint === '') {
+                    $code = $nameToCode[$name] ?? '';
+                    $crit = $criteriaByCode[$code] ?? null;
+                    $hint = $crit ? (string) ($crit->development_hint ?? '') : '';
+                }
+                if ($hint === '') {
+                    $hint = 'memperkuat area ini';
+                }
+                $areaOut[] = $name.' masih bisa ditingkatkan; sebagai '.$topName.', Anda perlu '.IndonesianText::lcfirstSmart($hint).'.';
+                $usedCriteria[] = $name;
             }
 
             $patterns = [
-                fn (string $item) => 'Mulai dengan memahami '.$item.': konsep dasar dan contoh penerapannya.',
-                fn (string $item) => 'Luangkan 30 menit sehari untuk berlatih '.$item.' secara bertahap.',
-                fn (string $item) => 'Buat catatan singkat dari materi '.$item.' dan ulangi tiap minggu.',
+                fn (string $item) => 'Mulai dengan mempelajari '.IndonesianText::lcfirstSmart($item).' melalui video atau artikel pengantar.',
+                fn (string $item) => 'Setelah itu, latih '.IndonesianText::lcfirstSmart($item).' lewat latihan kecil atau proyek sederhana.',
+                fn (string $item) => 'Lanjutkan ke '.IndonesianText::lcfirstSmart($item).' dan catat hal penting yang Anda pelajari.',
             ];
             $langkah = [];
             $items = $roadmap !== [] ? $roadmap : $skills;
             foreach (array_slice($items, 0, 3) as $index => $item) {
-                $pattern = $patterns[($variant + $index) % count($patterns)];
+                $pattern = $patterns[$index % count($patterns)];
                 $langkah[] = $pattern((string) $item);
             }
             if (count($langkah) < 2) {
@@ -155,7 +210,7 @@ final class TemplateAiExplainer implements AiExplainerInterface
             }
 
             $alternatif = $topResults->skip(1)->count() > 0
-                ? 'Peringkat berikutnya yang layak dipertimbangkan adalah '.$topResults->skip(1)->map(fn ($item) => $item->career_name.' ('.$item->match_percentage.'%)')->implode(' dan ').'.'
+                ? 'Peringkat berikutnya yang layak dipertimbangkan adalah '.$topResults->skip(1)->map(fn ($item) => $item->career_name.' ('.IndonesianText::percent((float) $item->match_percentage).')')->implode(' dan ').'.'
                 : 'Kesimpulan ini bersifat relatif.';
         }
 
