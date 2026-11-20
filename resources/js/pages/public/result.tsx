@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import PublicLayout from '@/layouts/public-layout';
 import { Button } from '@/components/ui/button';
+import { formatPercent } from '@/lib/format';
 import {
     Select,
     SelectContent,
@@ -1053,7 +1054,7 @@ export default function ResultPage({
                                                         </div>
                                                     </div>
                                                     <span className="shrink-0 text-sm font-semibold text-zinc-950 tabular-nums">
-                                                        {item.match_percentage}%
+                                                        {formatPercent(Number(item.match_percentage))}
                                                     </span>
                                                 </button>
                                             </li>

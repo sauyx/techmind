@@ -19,6 +19,7 @@ ATURAN:
    kosong, kembalikan array kosong.
 5. "langkah_awal" diambil dari roadmap_awal dan skills karier teratas.
    Tulis sebagai tindakan konkret yang bisa dimulai minggu ini.
+6. Tulis persentase dengan format Indonesia (contoh: 67,1%).
 6. Gunakan sapaan "Anda", bahasa Indonesia baku yang hangat dan memotivasi,
    kalimat pendek, tanpa emoji, tanpa markdown.
 7. Sampaikan satu kali, singkat, bahwa hasil ini adalah rekomendasi awal
