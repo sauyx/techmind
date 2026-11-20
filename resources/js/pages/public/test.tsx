@@ -4,6 +4,16 @@ import { useMemo, useState } from 'react';
 import { store } from '@/routes/tests';
 import PublicLayout from '@/layouts/public-layout';
 import { Button } from '@/components/ui/button';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type Criterion = {
     code: string;
@@ -75,6 +85,7 @@ export default function PublicTest({ criteria }: Props) {
     const { demo_mode } = usePage().props as { demo_mode?: boolean };
     const [demoIndex, setDemoIndex] = useState(0);
     const [step, setStep] = useState(0);
+    const [confirmOpen, setConfirmOpen] = useState(false);
     const { data, setData, post, processing, errors } = useForm<{
         visitor_name: string;
         ratings: Record<string, number>;
@@ -111,15 +122,15 @@ export default function PublicTest({ criteria }: Props) {
         setData('ratings', { ...data.ratings, [code]: value });
     }
 
-    function submit() {
+    function requestSubmit() {
         if (lowVariance) {
-            const confirmed = window.confirm(
-                'Semua jawaban Anda bernilai sama. Hasil rekomendasi mungkin kurang akurat. Lanjutkan submit?',
-            );
-            if (!confirmed) {
-                return;
-            }
+            setConfirmOpen(true);
+            return;
         }
+        submitForm();
+    }
+
+    function submitForm() {
         post(store.url());
     }
 
@@ -373,7 +384,7 @@ export default function PublicTest({ criteria }: Props) {
                                 ) : (
                                     <Button
                                         type="button"
-                                        onClick={submit}
+                                        onClick={requestSubmit}
                                         disabled={
                                             !currentComplete || processing
                                         }
@@ -387,6 +398,34 @@ export default function PublicTest({ criteria }: Props) {
                         </>
                     )}
                 </div>
+                    <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Jawaban Anda terlihat seragam
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Semua penilaian Anda bernilai sama, sehingga
+                                    sistem mungkin tidak dapat membedakan karier
+                                    yang paling cocok. Ingin meninjau kembali
+                                    jawaban Anda?
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>
+                                    Tinjau Jawaban
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={() => {
+                                        setConfirmOpen(false);
+                                        submitForm();
+                                    }}
+                                >
+                                    Tetap Kirim
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
             </PublicLayout>
         </>
     );

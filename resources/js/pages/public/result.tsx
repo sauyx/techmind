@@ -383,10 +383,10 @@ export default function ResultPage({
                             className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900"
                         >
                             Beberapa karier memiliki tingkat kecocokan yang
-                            sama. Jawabanmu cenderung merata, sehingga sistem
-                            belum bisa membedakan dengan jelas. Coba ulangi tes
-                            dan beri penilaian yang lebih jujur pada hal yang
-                            benar-benar kamu sukai/tidak sukai.
+                            sama karena jawaban Anda cenderung merata. Untuk
+                            hasil yang lebih tajam, ulangi tes dan berikan
+                            penilaian yang lebih tegas pada hal yang benar-benar
+                            Anda minati atau tidak minati.
                         </div>
                     ) : null}
 
@@ -420,7 +420,7 @@ export default function ResultPage({
                                             Perbandingan profil
                                         </p>
                                         <h2 className="mt-1 text-base font-semibold tracking-[-0.015em] text-zinc-950">
-                                            Profil kamu vs profil ideal
+                                            Profil Anda vs profil ideal
                                         </h2>
                                     </div>
                                     <div className="flex flex-col gap-1 sm:w-64">
@@ -490,7 +490,7 @@ export default function ResultPage({
                                                 axisLine={false}
                                             />
                                             <Radar
-                                                name="Profil Kamu"
+                                                name="Profil Anda"
                                                 dataKey="Anda"
                                                 stroke="#4F46E5"
                                                 fill="#4F46E5"
@@ -514,14 +514,14 @@ export default function ResultPage({
                                 <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-600">
                                     <span className="flex items-center gap-1.5">
                                         <span className="inline-block size-2 rounded-full bg-brand" />{' '}
-                                        Profil Kamu
+                                        Profil Anda
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <span className="inline-block size-2 rounded-full bg-slate-500" />{' '}
                                         Profil Ideal Karier
                                     </span>
                                     <span className="ml-auto font-medium text-zinc-500 tabular-nums">
-                                        Rata-rata kamu{' '}
+                                        Rata-rata Anda{' '}
                                         <span className="text-zinc-950 tabular-nums">
                                             {averageUser.toFixed(1)}
                                         </span>{' '}
@@ -544,7 +544,7 @@ export default function ResultPage({
                                                         Kriteria
                                                     </th>
                                                     <th className="py-2 pr-3 font-medium">
-                                                        Profil Kamu
+                                                        Profil Anda
                                                     </th>
                                                     <th className="py-2 font-medium">
                                                         Profil Ideal

@@ -33,8 +33,18 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
             'match_percentage' => (float) $result->match_percentage,
         ])->values()->all();
 
+        $topScore = (float) ($session->results->first()?->saw_score ?? 0.0);
+        $tiedTopNames = $session->results
+            ->filter(fn ($result) => abs((float) $result->saw_score - $topScore) < 1e-9)
+            ->pluck('career_name')
+            ->all();
+        $isTiedTop = count($tiedTopNames) > 1;
+
         $system = 'Anda adalah asisten karier yang ramah. Tulis penjelasan ringkas dalam Bahasa Indonesia, maksimal 180 kata, tanpa markdown berlebihan, tanpa emoji, dan tanpa mengidentifikasi identitas pengguna.';
-        $user = 'Jawab hanya dengan paragraf penjelasan. Data anonim: skor kriteria 1-5 '.json_encode($ratings, JSON_THROW_ON_ERROR).' dan tiga karier teratas '.json_encode($topCareers, JSON_THROW_ON_ERROR).'.';
+        $tieNote = $isTiedTop
+            ? ' Beberapa karier memiliki skor tertinggi yang setara: '.implode(', ', $tiedTopNames).'. Jangan menyebut satu karier sebagai paling cocok; sebutkan karier-karier yang setara dan sarankan ulangi tes.'
+            : '';
+        $user = 'Jawab hanya dengan paragraf penjelasan. Data anonim: skor kriteria 1-5 '.json_encode($ratings, JSON_THROW_ON_ERROR).' dan tiga karier teratas '.json_encode($topCareers, JSON_THROW_ON_ERROR).'.'.$tieNote;
 
         $startedAt = microtime(true);
 

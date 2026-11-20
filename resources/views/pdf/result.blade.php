@@ -36,7 +36,7 @@
 
     @if($topResult && !empty($topResult['is_tied']))
     <div class="card" style="border-left: 4px solid #F59E0B;">
-        <div class="p">Beberapa karier memiliki tingkat kecocokan yang sama. Jawabanmu cenderung merata, sehingga sistem belum bisa membedakan dengan jelas. Coba ulangi tes dan beri penilaian yang lebih jujur pada hal yang benar-benar kamu sukai/tidak sukai.</div>
+        <div class="p">Beberapa karier memiliki tingkat kecocokan yang sama karena jawaban Anda cenderung merata. Untuk hasil yang lebih tajam, ulangi tes dan berikan penilaian yang lebih tegas pada hal yang benar-benar Anda minati atau tidak minati.</div>
     </div>
     @endif
 

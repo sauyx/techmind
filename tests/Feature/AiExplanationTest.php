@@ -147,6 +147,31 @@ class AiExplanationTest extends TestCase
         $this->assertTrue($explanation->is_fallback);
     }
 
+    public function test_template_driver_handles_tied_top(): void
+    {
+        config([
+            'techmind.ai.driver' => 'template',
+            'techmind.ai.api_key' => null,
+        ]);
+
+        $ratings = [];
+        foreach (Criterion::query()->pluck('code') as $code) {
+            $ratings[$code] = 3;
+        }
+
+        $this->post('/tes', [
+            'visitor_name' => 'Budi',
+            'ratings' => $ratings,
+        ]);
+
+        $session = TestSession::first();
+
+        $this->get('/hasil/'.$session->token)->assertOk();
+        $this->assertDatabaseCount('ai_explanations', 1);
+        $explanation = $session->refresh()->aiExplanation;
+        $this->assertStringContainsString('setara', strtolower($explanation->content));
+    }
+
     private function createSession(?string $name = 'Budi'): TestSession
     {
         $ratings = [];

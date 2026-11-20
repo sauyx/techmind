@@ -29,9 +29,14 @@ class ReferenceDataSeeder extends Seeder
         Career::query()->whereNotIn('code', $validCareerCodes)->delete();
 
         foreach ($criteriaData as $data) {
+            // Jangan timpa bobot (weight) yang sudah diubah admin; hanya sinkronkan
+            // metadata. Bobot default hanya berlaku saat kriteria baru dibuat.
+            $attributes = $data;
+            unset($attributes['weight']);
+
             Criterion::query()->updateOrCreate(
                 ['code' => $data['code']],
-                $data
+                $attributes
             );
         }
 
