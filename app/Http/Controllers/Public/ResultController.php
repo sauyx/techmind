@@ -29,7 +29,11 @@ class ResultController extends Controller
             abort(404);
         }
 
-        $props = $this->presentation->formatSession($session);
+        $props = $this->presentation->formatSession($session, false);
+
+        $props['ai_explanation'] = Inertia::defer(function () use ($session) {
+            return $this->presentation->formatAiExplanation($session);
+        });
 
         return Inertia::render('public/result', $props);
     }

@@ -21,14 +21,18 @@ class CriteriaManagementService
 
     public function update(Criterion $criterion, array $data): Criterion
     {
-        return $this->criteria->update($criterion, [
+        $updated = $this->criteria->update($criterion, [
             'name' => (string) $data['name'],
             'description' => $data['description'] ?? null,
+            'development_hint' => $data['development_hint'] ?? null,
             'weight' => (float) $data['weight'],
             'step_group' => (int) $data['step_group'],
             'display_order' => (int) $data['display_order'],
             'is_active' => (bool) $data['is_active'],
         ]);
+        $this->criteria->flushCache();
+
+        return $updated;
     }
 
     private function mapCriterion(Criterion $criterion): array
@@ -38,6 +42,7 @@ class CriteriaManagementService
             'code' => (string) $criterion->code,
             'name' => (string) $criterion->name,
             'description' => $criterion->description,
+            'development_hint' => $criterion->development_hint,
             'weight' => (float) $criterion->weight,
             'step_group' => (int) $criterion->step_group,
             'display_order' => (int) $criterion->display_order,

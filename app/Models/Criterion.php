@@ -14,6 +14,7 @@ class Criterion extends Model
         'code',
         'name',
         'description',
+        'development_hint',
         'weight',
         'display_order',
         'step_group',

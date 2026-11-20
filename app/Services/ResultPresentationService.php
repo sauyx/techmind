@@ -32,7 +32,7 @@ class ResultPresentationService
         private VisitorFeedbackRepository $feedbacks,
     ) {}
 
-    public function formatSession(TestSession $session): array
+    public function formatSession(TestSession $session, bool $includeExplanation = true): array
     {
         $answers = $session->answers;
         $ratings = [];
@@ -55,13 +55,26 @@ class ResultPresentationService
             ];
         }
 
-        $results = $session->results->map(function ($result) use ($criteriaNames) {
+        $resultScores = $session->results->map(fn ($result) => (float) $result->saw_score)->all();
+
+        $results = $session->results->map(function ($result) use ($criteriaNames, $resultScores) {
+            $score = (float) $result->saw_score;
+            $sameCount = 0;
+            foreach ($resultScores as $otherScore) {
+                if (abs($otherScore - $score) < 1e-9) {
+                    $sameCount++;
+                }
+            }
+            $isTied = $sameCount > 1;
+
             return [
                 'id' => (int) $result->id,
                 'rank' => (int) $result->rank,
+                'rank_label' => $isTied ? '#'.(int) $result->rank.' (setara)' : '#'.(int) $result->rank,
+                'is_tied' => $isTied,
                 'career_code' => (string) $result->career_code,
                 'career_name' => (string) $result->career_name,
-                'saw_score' => (float) $result->saw_score,
+                'saw_score' => $score,
                 'match_percentage' => (string) $result->match_percentage,
                 'contribution_breakdown' => $result->contribution_breakdown ?? [],
                 'gap_summary' => $this->buildNaturalGapSummary($result->gap_summary, $criteriaNames),
@@ -92,10 +105,14 @@ class ResultPresentationService
             ];
         })->values()->all();
 
-        $aiExplanation = $this->explanations->getOrCreate($session);
         $feedback = $this->feedbacks->findForSession($session);
 
-        return [
+        $aiExplanation = null;
+        if ($includeExplanation) {
+            $aiExplanation = $this->explanations->getOrCreate($session);
+        }
+
+        $props = [
             'session' => [
                 'token' => (string) $session->token,
                 'visitor_name' => $session->visitor_name,
@@ -105,19 +122,37 @@ class ResultPresentationService
             'ratings' => $ratings,
             'criteria' => $criteriaList,
             'careers' => $careerDetails,
-            'ai_explanation' => [
+            'ai_explanation' => $aiExplanation ? [
                 'content' => (string) $aiExplanation->content,
+                'format' => (string) $aiExplanation->format,
                 'driver_used' => (string) $aiExplanation->driver_used,
                 'is_fallback' => (bool) $aiExplanation->is_fallback,
                 'source_label' => $aiExplanation->driver_used === 'openai_compatible' && ! $aiExplanation->is_fallback
                     ? 'Analisis AI'
                     : 'Analisis Ringkas',
-            ],
+            ] : null,
             'visitor_feedback' => $feedback ? [
                 'score' => (int) $feedback->score,
                 'comment' => $feedback->comment,
                 'suggestion' => $feedback->suggestion,
             ] : null,
+        ];
+
+        return $props;
+    }
+
+    public function formatAiExplanation(TestSession $session): array
+    {
+        $aiExplanation = $this->explanations->getOrCreate($session);
+
+        return [
+            'content' => (string) $aiExplanation->content,
+            'format' => (string) $aiExplanation->format,
+            'driver_used' => (string) $aiExplanation->driver_used,
+            'is_fallback' => (bool) $aiExplanation->is_fallback,
+            'source_label' => $aiExplanation->driver_used === 'openai_compatible' && ! $aiExplanation->is_fallback
+                ? 'Analisis AI'
+                : 'Analisis Ringkas',
         ];
     }
 

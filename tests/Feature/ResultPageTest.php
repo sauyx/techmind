@@ -42,14 +42,38 @@ class ResultPageTest extends TestCase
             ->has('criteria', 12)
             ->has('careers', 10)
             ->has('ratings')
-            ->has('ai_explanation')
             ->has('results.0.gap_summary')
+            ->loadDeferredProps(function (AssertableInertia $page) {
+                $page->has('ai_explanation');
+            })
         );
     }
 
     public function test_invalid_token_returns_404(): void
     {
         $this->get('/hasil/00000000-0000-0000-0000-000000000000')->assertNotFound();
+    }
+
+    public function test_all_equal_ratings_marks_results_as_tied(): void
+    {
+        $ratings = [];
+        foreach (Criterion::query()->pluck('code') as $code) {
+            $ratings[$code] = 3;
+        }
+
+        $this->post('/tes', [
+            'visitor_name' => 'Budi',
+            'ratings' => $ratings,
+        ]);
+
+        $session = TestSession::first();
+
+        $this->get('/hasil/'.$session->token)
+            ->assertOk()
+            ->assertInertia(fn (AssertableInertia $page) => $page
+                ->component('public/result')
+                ->where('results.0.is_tied', true)
+            );
     }
 
     public function test_result_uses_snapshot_and_ignores_later_weight_changes(): void

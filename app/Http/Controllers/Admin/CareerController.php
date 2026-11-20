@@ -23,6 +23,7 @@ class CareerController extends Controller
             'careers' => $this->careers->list(),
             'standard_total_score' => $this->careers->standardTotalScore(),
             'max_total_score' => $this->careers->maxTotalScore(),
+            'criteria' => $this->careers->criteria(),
         ]);
     }
 
@@ -55,6 +56,13 @@ class CareerController extends Controller
             'criteria' => $this->careers->criteria(),
             'standard_total_score' => $this->careers->standardTotalScore(),
         ]);
+    }
+
+    public function toggle(Career $career): RedirectResponse
+    {
+        $this->careers->toggleActive($career);
+
+        return back()->with('success', 'Status karier berhasil diperbarui.');
     }
 
     public function update(UpdateCareerRequest $request, Career $career): RedirectResponse

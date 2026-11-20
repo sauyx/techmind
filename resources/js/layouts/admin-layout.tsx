@@ -6,6 +6,8 @@ import {
     LogOut,
     Menu,
     QrCode,
+    Activity,
+    Settings,
     SlidersHorizontal,
     X,
 } from 'lucide-react';
@@ -28,6 +30,8 @@ const navigation = [
         exact: false,
     },
     { href: '/admin/booth', label: 'QR & Booth', icon: QrCode, exact: false },
+    { href: '/admin/kesehatan-matriks', label: 'Kesehatan Matriks', icon: Activity, exact: false },
+    { href: '/settings/profile', label: 'Pengaturan Akun', icon: Settings, exact: false },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {

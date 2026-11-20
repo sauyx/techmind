@@ -1,7 +1,17 @@
 import { Head, Link, useForm } from '@inertiajs/react';
-import { type FormEvent, type ReactNode } from 'react';
+import { type FormEvent, type ReactNode, useState } from 'react';
 import AdminLayout from '@/layouts/admin-layout';
 import { Button } from '@/components/ui/button';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type Criterion = {
     id: number;
@@ -64,6 +74,11 @@ export default function CareerForm({
         ),
     });
 
+    const [isImpactChecked, setIsImpactChecked] = useState(false);
+    const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [impact, setImpact] = useState<any>(null);
+    const [checkingImpact, setCheckingImpact] = useState(false);
+
     const totalScore = Object.values(form.data.profiles).reduce(
         (sum, score) => sum + Number(score || 0),
         0,
@@ -71,11 +86,48 @@ export default function CareerForm({
 
     function submit(event: FormEvent<HTMLFormElement>) {
         event.preventDefault();
+        handleSubmit();
+    }
 
+    function executeSubmit() {
         if (career) {
             form.put(`/admin/careers/${career.id}`);
         } else {
             form.post('/admin/careers');
+        }
+    }
+
+    async function checkImpact() {
+        setCheckingImpact(true);
+        try {
+            const scores: Record<string, number> = {};
+            criteria.forEach((criterion) => {
+                scores[criterion.code] = Number(form.data.profiles[String(criterion.id)] ?? 3);
+            });
+
+            const response = await fetch('/admin/kesehatan-matriks/preview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    criteria: criteria.map((criterion) => ({
+                        code: criterion.code,
+                        multiplier: 1,
+                        sort_order: criterion.display_order,
+                        name: criterion.name,
+                    })),
+                    careers: [{ code: form.data.code || 'draft-career', name: form.data.name || 'Karier Baru', sort_order: form.data.sort_order, scores }],
+                    samples: 300,
+                    seed: 42,
+                }),
+            });
+            setImpact(await response.json());
+            setIsImpactChecked(true);
+        } finally {
+            setCheckingImpact(false);
         }
     }
 
@@ -102,6 +154,19 @@ export default function CareerForm({
             [String(criterionId)]: score,
         });
     }
+
+    function handleConfirm() {
+        setIsConfirmOpen(false);
+        executeSubmit();
+    }
+
+    const handleSubmit = () => {
+        if (totalScore !== standard_total_score || (impact && !impact.healthy)) {
+            setIsConfirmOpen(true);
+        } else {
+            executeSubmit();
+        }
+    };
 
     return (
         <>
@@ -302,12 +367,22 @@ export default function CareerForm({
                                     Pilih skor 1-5 untuk setiap kriteria aktif.
                                 </p>
                             </div>
-                            <span
-                                className={`rounded-full px-3 py-1.5 text-sm font-semibold tabular-nums ${totalScore === standard_total_score ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}
-                            >
-                                Total Skor: {totalScore} / {criteria.length * 5}
-                            </span>
+                            <div className="flex flex-wrap items-center gap-2">
+                                <Button type="button" variant="outline" onClick={checkImpact} disabled={checkingImpact}>
+                                    {checkingImpact ? 'Memeriksa...' : 'Cek Dampak'}
+                                </Button>
+                                <span
+                                    className={`rounded-full px-3 py-1.5 text-sm font-semibold tabular-nums ${totalScore === standard_total_score ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}`}
+                                >
+                                    Total Skor: {totalScore} / {criteria.length * 5}
+                                </span>
+                            </div>
                         </div>
+                        {isImpactChecked && impact ? (
+                            <p className={`mt-3 rounded-lg border px-4 py-2 text-sm ${impact.healthy ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+                                {impact.healthy ? 'Dampak matriks: matriks tetap sehat.' : 'Dampak matriks: perubahan berisiko mengganggu kesehatan matriks.'}
+                            </p>
+                        ) : null}
                         {totalScore !== standard_total_score ? (
                             <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
                                 Total skor menyimpang dari standar keseimbangan
@@ -375,6 +450,37 @@ export default function CareerForm({
                             <Link href="/admin/careers">Batal</Link>
                         </Button>
                     </div>
+
+                    <AlertDialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Perhatian: Skor Matriks Karier
+                                </AlertDialogTitle>
+                            </AlertDialogHeader>
+                            <AlertDialogDescription>
+                                Skor total matriks karier ini tidak seimbang. Disarankan
+                                untuk menyesuaikan skor agar lebih merata (misalnya,
+                                menghindari semua skor rendah atau semua skor tinggi).
+                                <br />
+                                <br />
+                                Apakah Anda yakin ingin melanjutkan?
+                            </AlertDialogDescription>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel
+                                    onClick={() => setIsConfirmOpen(false)}
+                                >
+                                    Batal
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={handleConfirm}
+                                    className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                                >
+                                    Lanjutkan
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </form>
             </AdminLayout>
         </>

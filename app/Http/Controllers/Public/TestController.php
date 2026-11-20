@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Public;
 use App\Contracts\CriterionRepository;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTestRequest;
+use App\Jobs\GenerateAiExplanation;
 use App\Services\TestSubmissionService;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class TestController extends Controller
 {
@@ -15,7 +18,7 @@ class TestController extends Controller
         private TestSubmissionService $submission,
     ) {}
 
-    public function create()
+    public function create(): Response
     {
         $criteria = $this->criteria->activeOrdered()->map(fn ($criterion) => [
             'code' => (string) $criterion->code,
@@ -30,12 +33,14 @@ class TestController extends Controller
         ]);
     }
 
-    public function store(StoreTestRequest $request)
+    public function store(StoreTestRequest $request): RedirectResponse
     {
         $session = $this->submission->submit(
             $request->validated('visitor_name'),
             $request->validated('ratings')
         );
+
+        dispatch(new GenerateAiExplanation($session->token))->afterResponse();
 
         return redirect()->route('results.show', $session->token);
     }

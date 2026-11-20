@@ -14,4 +14,6 @@ interface CareerProfileRepository
     public function replaceForCareer(int $careerId, array $scores): void;
 
     public function matrix(): Collection;
+
+    public function flushCache(): void;
 }

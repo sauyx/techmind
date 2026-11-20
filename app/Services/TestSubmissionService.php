@@ -53,10 +53,6 @@ class TestSubmissionService
             $normalizedRatings[$code] = (int) $numeric;
         }
 
-        if (count(array_unique($normalizedRatings)) < 2) {
-            throw ValidationException::withMessages(['ratings' => 'Semua jawaban Anda memiliki nilai yang sama. Coba bedakan minimal beberapa kriteria yang paling menonjol agar hasil rekomendasi lebih akurat.']);
-        }
-
         $recommendation = $this->recommendation->recommend($normalizedRatings);
 
         $careersByCode = $this->careers->allWithProfiles()->keyBy('code');

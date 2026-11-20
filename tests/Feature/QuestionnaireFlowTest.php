@@ -166,8 +166,8 @@ class QuestionnaireFlowTest extends TestCase
                 'visitor_name' => 'Budi',
                 'ratings' => $ratings,
             ])
-            ->assertRedirect('/tes')
-            ->assertSessionHasErrors('ratings');
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
     }
 
     public function test_result_page_renders_full_results(): void
@@ -189,7 +189,9 @@ class QuestionnaireFlowTest extends TestCase
             ->has('results', 10)
             ->has('criteria', 12)
             ->has('careers', 10)
-            ->has('ai_explanation')
+            ->loadDeferredProps(function (AssertableInertia $page) {
+                $page->has('ai_explanation');
+            })
         );
     }
 

@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Contracts\CareerProfileRepository;
+use App\Contracts\CareerRepository;
+use App\Contracts\CriterionRepository;
 use App\Models\Career;
 use App\Models\CareerProfile;
 use App\Models\Criterion;
@@ -29,9 +32,14 @@ class ReferenceDataSeeder extends Seeder
         Career::query()->whereNotIn('code', $validCareerCodes)->delete();
 
         foreach ($criteriaData as $data) {
+            // Jangan timpa bobot (weight) yang sudah diubah admin; hanya sinkronkan
+            // metadata. Bobot default hanya berlaku saat kriteria baru dibuat.
+            $attributes = $data;
+            unset($attributes['weight']);
+
             Criterion::query()->updateOrCreate(
                 ['code' => $data['code']],
-                $data
+                $attributes
             );
         }
 
@@ -63,5 +71,12 @@ class ReferenceDataSeeder extends Seeder
                 );
             }
         }
+        // Invalidate reference cache setelah data referensi berubah.
+        if (app()->bound(CriterionRepository::class)) {
+            app(CriterionRepository::class)->flushCache();
+            app(CareerRepository::class)->flushCache();
+            app(CareerProfileRepository::class)->flushCache();
+        }
+
     }
 }

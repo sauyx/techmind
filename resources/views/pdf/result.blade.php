@@ -34,6 +34,12 @@
         </div>
     </div>
 
+    @if($topResult && !empty($topResult['is_tied']))
+    <div class="card" style="border-left: 4px solid #F59E0B;">
+        <div class="p">Beberapa karier memiliki tingkat kecocokan yang sama karena jawaban Anda cenderung merata. Untuk hasil yang lebih tajam, ulangi tes dan berikan penilaian yang lebih tegas pada hal yang benar-benar Anda minati atau tidak minati.</div>
+    </div>
+    @endif
+
     @if($topResult)
     <div class="card" style="border-left: 4px solid #4F46E5;">
         <span class="badge">Rekomendasi Utama (Rank #1)</span>
@@ -46,7 +52,39 @@
 
     <div class="card">
         <div class="h2">Ringkasan Analisis Personal</div>
-        <div class="p" style="white-space: pre-line;">{{ $ai_explanation['content'] }}</div>
+        @php $parsed = json_decode($ai_explanation['content'] ?? '', true); @endphp
+        @if(is_array($parsed) && isset($parsed['ringkasan']))
+            <div class="p">{{ $parsed['ringkasan'] }}</div>
+            @if(!empty($parsed['alasan']))
+                <div class="p"><strong>Mengapa cocok:</strong></div>
+                <ul class="p">
+                    @foreach($parsed['alasan'] as $item)
+                        <li>{{ $item }}</li>
+                    @endforeach
+                </ul>
+            @endif
+            @if(!empty($parsed['area_pengembangan']))
+                <div class="p"><strong>Yang perlu dikembangkan:</strong></div>
+                <ul class="p">
+                    @foreach($parsed['area_pengembangan'] as $item)
+                        <li>{{ $item }}</li>
+                    @endforeach
+                </ul>
+            @endif
+            @if(!empty($parsed['langkah_awal']))
+                <div class="p"><strong>Langkah awal:</strong></div>
+                <ol class="p">
+                    @foreach($parsed['langkah_awal'] as $item)
+                        <li>{{ $item }}</li>
+                    @endforeach
+                </ol>
+            @endif
+            @if(!empty($parsed['alternatif']))
+                <div class="p">{{ $parsed['alternatif'] }}</div>
+            @endif
+        @else
+            <div class="p" style="white-space: pre-line;">{{ $ai_explanation['content'] }}</div>
+        @endif
     </div>
 
     <div class="card chart-box">
@@ -68,7 +106,7 @@
                 @foreach($results as $item)
                 <tr>
                     <td>#{{ $item['rank'] }}</td>
-                    <td><strong>{{ $item['career_name'] }}</strong></td>
+                    <td><strong>{{ $item['career_name'] }}</strong>@if(!empty($item['is_tied'])) <span class="badge" style="background:#FEF3C7;color:#92400E;">Setara</span>@endif</td>
                     <td style="text-align: right;">{{ $item['match_percentage'] }}%</td>
                 </tr>
                 @endforeach

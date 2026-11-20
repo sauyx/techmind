@@ -1,4 +1,4 @@
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Deferred, Head, Link, useForm } from '@inertiajs/react';
 import { Check, Copy, Download, RefreshCw } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import {
@@ -12,6 +12,7 @@ import {
 } from 'recharts';
 import PublicLayout from '@/layouts/public-layout';
 import { Button } from '@/components/ui/button';
+import { formatPercent } from '@/lib/format';
 import {
     Select,
     SelectContent,
@@ -25,6 +26,8 @@ type Criterion = { code: string; name: string; short_label: string };
 type ResultItem = {
     id: number;
     rank: number;
+    rank_label: string;
+    is_tied: boolean;
     career_code: string;
     career_name: string;
     saw_score: number;
@@ -70,6 +73,7 @@ type CareerDetail = {
 
 type AiExplanation = {
     content: string;
+    format: 'text' | 'json';
     driver_used: string;
     is_fallback: boolean;
     source_label: string;
@@ -91,7 +95,7 @@ type Props = {
     ratings: Record<string, number>;
     criteria: Criterion[];
     careers: CareerDetail[];
-    ai_explanation: AiExplanation;
+    ai_explanation?: AiExplanation | null;
     visitor_feedback: VisitorFeedback | null;
 };
 
@@ -375,27 +379,200 @@ export default function ResultPage({
                         </section>
                     ) : null}
 
+                    {topResult?.is_tied ? (
+                        <div
+                            role="status"
+                            className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900"
+                        >
+                            Beberapa karier memiliki tingkat kecocokan yang
+                            sama karena jawaban Anda cenderung merata. Untuk
+                            hasil yang lebih tajam, ulangi tes dan berikan
+                            penilaian yang lebih tegas pada hal yang benar-benar
+                            Anda minati atau tidak minati.
+                        </div>
+                    ) : null}
+
                     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
                         <div className="min-w-0 space-y-6">
                             <section className="rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_1px_3px_rgba(0,0,0,0.02)] sm:p-6">
-                                <div className="flex flex-wrap items-center justify-between gap-3">
-                                    <h2 className="text-base font-semibold tracking-[-0.015em] text-zinc-950">
-                                        Ringkasan Analisis Personal
-                                    </h2>
-                                    <span className="rounded-full border border-zinc-200/80 bg-zinc-50 px-2.5 py-1 text-[11px] font-medium text-zinc-600">
-                                        {ai_explanation.source_label}
-                                    </span>
-                                </div>
-                                <p className="mt-4 text-sm leading-7 whitespace-pre-line text-zinc-700">
-                                    {ai_explanation.content}
-                                </p>
-                                {ai_explanation.is_fallback ? (
-                                    <p className="mt-4 rounded-lg border border-zinc-200/80 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-500">
-                                        Ringkasan disusun dari template lokal
-                                        karena layanan AI tidak tersedia.
-                                        Driver: {ai_explanation.driver_used}.
-                                    </p>
-                                ) : null}
+                                <Deferred
+                                    data="ai_explanation"
+                                    fallback={
+                                        <div className="space-y-3">
+                                            <h2 className="text-base font-semibold tracking-[-0.015em] text-zinc-950">
+                                                Ringkasan Analisis Personal
+                                            </h2>
+                                            <p className="text-sm text-zinc-500">
+                                                Menyusun analisis untuk Anda...
+                                            </p>
+                                        </div>
+                                    }
+                                >
+                                    {ai_explanation ? (
+                                        <>
+                                            <div className="flex flex-wrap items-center justify-between gap-3">
+                                                <h2 className="text-base font-semibold tracking-[-0.015em] text-zinc-950">
+                                                    Ringkasan Analisis Personal
+                                                </h2>
+                                                <span className="rounded-full border border-zinc-200/80 bg-zinc-50 px-2.5 py-1 text-[11px] font-medium text-zinc-600">
+                                                    {ai_explanation.source_label}
+                                                </span>
+                                            </div>
+                                            {(() => {
+                                                let parsed: any = null;
+                                                try {
+                                                    parsed = JSON.parse(
+                                                        ai_explanation.content,
+                                                    );
+                                                } catch {
+                                                    parsed = null;
+                                                }
+                                                if (
+                                                    parsed &&
+                                                    typeof parsed ===
+                                                        'object' &&
+                                                    parsed.ringkasan
+                                                ) {
+                                                    return (
+                                                        <div className="mt-4 space-y-4 text-sm text-zinc-700">
+                                                            <div>
+                                                                <p className="text-[11px] font-semibold tracking-[0.08em] text-brand uppercase">
+                                                                    Ringkasan
+                                                                </p>
+                                                                <p className="mt-1 leading-7">
+                                                                    {
+                                                                        parsed.ringkasan
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                            {Array.isArray(
+                                                                parsed.alasan,
+                                                            ) &&
+                                                            parsed.alasan
+                                                                .length >
+                                                                0 ? (
+                                                                <div>
+                                                                    <p className="text-[11px] font-semibold tracking-[0.08em] text-brand uppercase">
+                                                                        Mengapa
+                                                                        cocok
+                                                                        untuk
+                                                                        Anda
+                                                                    </p>
+                                                                    <ul className="mt-1 list-disc space-y-1 pl-5 leading-7">
+                                                                        {parsed.alasan.map(
+                                                                            (
+                                                                                item: string,
+                                                                                idx: number,
+                                                                            ) => (
+                                                                                <li
+                                                                                    key={
+                                                                                        idx
+                                                                                    }
+                                                                                >
+                                                                                    {
+                                                                                        item
+                                                                                    }
+                                                                                </li>
+                                                                            ),
+                                                                        )}
+                                                                    </ul>
+                                                                </div>
+                                                            ) : null}
+                                                            {Array.isArray(
+                                                                parsed.area_pengembangan,
+                                                            ) &&
+                                                            parsed
+                                                                .area_pengembangan
+                                                                .length >
+                                                                0 ? (
+                                                                <div>
+                                                                    <p className="text-[11px] font-semibold tracking-[0.08em] text-zinc-500 uppercase">
+                                                                        Yang
+                                                                        perlu
+                                                                        dikembangkan
+                                                                    </p>
+                                                                    <ul className="mt-1 list-disc space-y-1 pl-5 leading-7">
+                                                                        {parsed.area_pengembangan.map(
+                                                                            (
+                                                                                item: string,
+                                                                                idx: number,
+                                                                            ) => (
+                                                                                <li
+                                                                                    key={
+                                                                                        idx
+                                                                                    }
+                                                                                >
+                                                                                    {
+                                                                                        item
+                                                                                    }
+                                                                                </li>
+                                                                            ),
+                                                                        )}
+                                                                    </ul>
+                                                                </div>
+                                                            ) : null}
+                                                            {Array.isArray(
+                                                                parsed.langkah_awal,
+                                                            ) &&
+                                                            parsed.langkah_awal
+                                                                .length >
+                                                                0 ? (
+                                                                <div>
+                                                                    <p className="text-[11px] font-semibold tracking-[0.08em] text-brand uppercase">
+                                                                        Langkah
+                                                                        awal
+                                                                        minggu
+                                                                        ini
+                                                                    </p>
+                                                                    <ol className="mt-1 list-decimal space-y-1 pl-5 leading-7">
+                                                                        {parsed.langkah_awal.map(
+                                                                            (
+                                                                                item: string,
+                                                                                idx: number,
+                                                                            ) => (
+                                                                                <li
+                                                                                    key={
+                                                                                        idx
+                                                                                    }
+                                                                                >
+                                                                                    {
+                                                                                        item
+                                                                                    }
+                                                                                </li>
+                                                                            ),
+                                                                        )}
+                                                                    </ol>
+                                                                </div>
+                                                            ) : null}
+                                                            {parsed.alternatif ? (
+                                                                <p className="text-sm leading-7 text-zinc-600">
+                                                                    {
+                                                                        parsed.alternatif
+                                                                    }
+                                                                </p>
+                                                            ) : null}
+                                                        </div>
+                                                    );
+                                                }
+                                                return (
+                                                    <p className="mt-4 text-sm leading-7 whitespace-pre-line text-zinc-700">
+                                                        {
+                                                            ai_explanation.content
+                                                        }
+                                                    </p>
+                                                );
+                                            })()}
+                                            {ai_explanation.is_fallback ? (
+                                                <p className="mt-4 rounded-lg border border-zinc-200/80 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-500">
+                                                    Ringkasan disusun dari
+                                                    template lokal karena layanan
+                                                    AI tidak tersedia. Driver:{' '}
+                                                    {ai_explanation.driver_used}.
+                                                </p>
+                                            ) : null}
+                                        </>
+                                    ) : null}
+                                </Deferred>
                             </section>
 
                             <section className="rounded-xl border border-zinc-200/80 bg-white p-5 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_1px_3px_rgba(0,0,0,0.02)] sm:p-6">
@@ -405,7 +582,7 @@ export default function ResultPage({
                                             Perbandingan profil
                                         </p>
                                         <h2 className="mt-1 text-base font-semibold tracking-[-0.015em] text-zinc-950">
-                                            Profil kamu vs profil ideal
+                                            Profil Anda vs profil ideal
                                         </h2>
                                     </div>
                                     <div className="flex flex-col gap-1 sm:w-64">
@@ -475,7 +652,7 @@ export default function ResultPage({
                                                 axisLine={false}
                                             />
                                             <Radar
-                                                name="Profil Kamu"
+                                                name="Profil Anda"
                                                 dataKey="Anda"
                                                 stroke="#4F46E5"
                                                 fill="#4F46E5"
@@ -499,14 +676,14 @@ export default function ResultPage({
                                 <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-zinc-600">
                                     <span className="flex items-center gap-1.5">
                                         <span className="inline-block size-2 rounded-full bg-brand" />{' '}
-                                        Profil Kamu
+                                        Profil Anda
                                     </span>
                                     <span className="flex items-center gap-1.5">
                                         <span className="inline-block size-2 rounded-full bg-slate-500" />{' '}
                                         Profil Ideal Karier
                                     </span>
                                     <span className="ml-auto font-medium text-zinc-500 tabular-nums">
-                                        Rata-rata kamu{' '}
+                                        Rata-rata Anda{' '}
                                         <span className="text-zinc-950 tabular-nums">
                                             {averageUser.toFixed(1)}
                                         </span>{' '}
@@ -529,7 +706,7 @@ export default function ResultPage({
                                                         Kriteria
                                                     </th>
                                                     <th className="py-2 pr-3 font-medium">
-                                                        Profil Kamu
+                                                        Profil Anda
                                                     </th>
                                                     <th className="py-2 font-medium">
                                                         Profil Ideal
@@ -861,6 +1038,11 @@ export default function ResultPage({
                                                     <div className="min-w-0 flex-1">
                                                         <p className="truncate text-sm font-medium text-zinc-950">
                                                             {item.career_name}
+                                                            {item.is_tied ? (
+                                                                <span className="ml-2 inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                                                                    Setara
+                                                                </span>
+                                                            ) : null}
                                                         </p>
                                                         <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-zinc-100">
                                                             <div
@@ -872,7 +1054,7 @@ export default function ResultPage({
                                                         </div>
                                                     </div>
                                                     <span className="shrink-0 text-sm font-semibold text-zinc-950 tabular-nums">
-                                                        {item.match_percentage}%
+                                                        {formatPercent(Number(item.match_percentage))}
                                                     </span>
                                                 </button>
                                             </li>

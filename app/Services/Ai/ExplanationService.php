@@ -6,6 +6,9 @@ use App\Contracts\AiExplanationRepository;
 use App\Data\AiExplanationResult;
 use App\Models\AiExplanation;
 use App\Models\TestSession;
+use Illuminate\Contracts\Cache\LockTimeoutException;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 final class ExplanationService
@@ -24,27 +27,72 @@ final class ExplanationService
             return $existing;
         }
 
-        $driver = (string) config('techmind.ai.driver', 'template');
+        $lock = Cache::lock('techmind:ai-explanation:'.$session->token, 10);
 
-        if ($driver === 'template' || config('techmind.ai.api_key') === '' || config('techmind.ai.api_key') === null) {
-            $result = $this->templateExplainer->explain($session);
-
-            return $this->explanations->store($session, $result);
+        try {
+            $lock->block(5);
+        } catch (LockTimeoutException) {
+            $existing = $this->explanations->findForSession($session);
+            if ($existing) {
+                return $existing;
+            }
         }
 
         try {
-            $result = $this->openAiExplainer->explain($session);
-        } catch (Throwable) {
-            $result = $this->templateExplainer->explain($session);
-            $result = new AiExplanationResult(
-                $result->content,
-                'fallback_template',
-                null,
-                true,
-                $result->latencyMs,
-            );
-        }
+            $existing = $this->explanations->findForSession($session);
+            if ($existing) {
+                return $existing;
+            }
 
-        return $this->explanations->store($session, $result);
+            $driver = (string) config('techmind.ai.driver', 'template');
+
+            if ($driver === 'template' || config('techmind.ai.api_key') === '' || config('techmind.ai.api_key') === null) {
+                $result = $this->templateExplainer->explain($session);
+                $stored = $this->explanations->store($session, $result);
+                Log::channel('ai')->info('AI explanation generated', [
+                    'token' => substr($session->token, 0, 8),
+                    'driver' => $result->driverUsed,
+                    'model' => $result->modelName,
+                    'latency_ms' => $result->latencyMs,
+                    'status' => $result->status,
+                    'attempts' => $result->attempts,
+                    'error' => $result->errorMessage,
+                ]);
+
+                return $stored;
+            }
+
+            try {
+                $result = $this->openAiExplainer->explain($session);
+            } catch (Throwable $e) {
+                $result = $this->templateExplainer->explain($session);
+                $result = new AiExplanationResult(
+                    $result->content,
+                    'fallback_template',
+                    null,
+                    true,
+                    $result->latencyMs,
+                    'fallback',
+                    'json',
+                    max(1, $this->openAiExplainer->lastAttempts),
+                    $this->openAiExplainer->lastError ?? $e->getMessage(),
+                );
+            }
+
+            $stored = $this->explanations->store($session, $result);
+            Log::channel('ai')->info('AI explanation generated', [
+                'token' => substr($session->token, 0, 8),
+                'driver' => $result->driverUsed,
+                'model' => $result->modelName,
+                'latency_ms' => $result->latencyMs,
+                'status' => $result->status,
+                'attempts' => $result->attempts,
+                'error' => $result->errorMessage,
+            ]);
+
+            return $stored;
+        } finally {
+            optional($lock)->release();
+        }
     }
 }
