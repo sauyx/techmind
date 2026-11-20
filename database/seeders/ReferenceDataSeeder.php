@@ -68,5 +68,12 @@ class ReferenceDataSeeder extends Seeder
                 );
             }
         }
+        // Invalidate reference cache setelah data referensi berubah.
+        if (app()->bound(\App\Contracts\CriterionRepository::class)) {
+            app(\App\Contracts\CriterionRepository::class)->flushCache();
+            app(\App\Contracts\CareerRepository::class)->flushCache();
+            app(\App\Contracts\CareerProfileRepository::class)->flushCache();
+        }
+
     }
 }

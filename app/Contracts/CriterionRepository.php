@@ -18,4 +18,5 @@ interface CriterionRepository
     public function update(Criterion $criterion, array $data): Criterion;
 
     public function delete(Criterion $criterion): void;
+    public function flushCache(): void;
 }

@@ -106,6 +106,9 @@ class CareerManagementService
 
             $this->profiles->replaceForCareer((int) $career->id, $scores);
 
+            $this->careers->flushCache();
+            $this->profiles->flushCache();
+
             return $career;
         });
     }

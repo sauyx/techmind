@@ -4,17 +4,45 @@ namespace App\Repositories;
 
 use App\Contracts\CriterionRepository as CriterionRepositoryContract;
 use App\Models\Criterion;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
 
 class CriterionRepository implements CriterionRepositoryContract
 {
     public function activeOrdered(): Collection
     {
-        return Criterion::query()
-            ->where('is_active', true)
-            ->orderBy('display_order')
-            ->orderBy('id')
-            ->get();
+        $version = $this->referenceVersion();
+
+        return Cache::remember('techmind:ref:v'.$version.':criteria:active', 600, function () {
+            return Criterion::query()
+                ->where('is_active', true)
+                ->orderBy('display_order')
+                ->orderBy('id')
+                ->get();
+        });
+    }
+
+    public function flushCache(): void
+    {
+        $this->bumpReferenceVersion();
+    }
+
+    private function referenceVersion(): int
+    {
+        if (! Cache::has('techmind:ref:version')) {
+            Cache::put('techmind:ref:version', 1, 86400 * 30);
+        }
+
+        return (int) Cache::get('techmind:ref:version', 1);
+    }
+
+    private function bumpReferenceVersion(): void
+    {
+        if (! Cache::has('techmind:ref:version')) {
+            Cache::put('techmind:ref:version', 1, 86400 * 30);
+        }
+
+        Cache::increment('techmind:ref:version');
     }
 
     public function all(): Collection
