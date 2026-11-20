@@ -59,6 +59,18 @@ class CareerManagementService
         return $this->save($career, $data);
     }
 
+    public function toggleActive(Career $career): Career
+    {
+        $updated = $this->careers->update($career, [
+            'is_active' => ! (bool) $career->is_active,
+        ]);
+
+        $this->careers->flushCache();
+        $this->profiles->flushCache();
+
+        return $updated;
+    }
+
     public function standardTotalScore(): int
     {
         return self::STANDARD_TOTAL_SCORE;

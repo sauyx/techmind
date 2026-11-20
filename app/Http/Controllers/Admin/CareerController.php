@@ -57,6 +57,13 @@ class CareerController extends Controller
         ]);
     }
 
+    public function toggle(Career $career): RedirectResponse
+    {
+        $this->careers->toggleActive($career);
+
+        return back()->with('success', 'Status karier berhasil diperbarui.');
+    }
+
     public function update(UpdateCareerRequest $request, Career $career): RedirectResponse
     {
         $this->careers->update($career, $request->validated());

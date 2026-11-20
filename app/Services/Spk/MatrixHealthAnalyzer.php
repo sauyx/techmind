@@ -18,9 +18,11 @@ class MatrixHealthAnalyzer
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function selfConsistency(): array
+    public function selfConsistency(?array $criteria = null, ?array $careers = null): array
     {
-        [$criteria, $careers] = $this->loadData();
+        if ($criteria === null || $careers === null) {
+            [$criteria, $careers] = $this->loadData();
+        }
         $codes = array_column($criteria, 'code');
         $result = [];
 
@@ -61,9 +63,11 @@ class MatrixHealthAnalyzer
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function nearestNeighbors(): array
+    public function nearestNeighbors(?array $criteria = null, ?array $careers = null): array
     {
-        [$criteria, $careers] = $this->loadData();
+        if ($criteria === null || $careers === null) {
+            [$criteria, $careers] = $this->loadData();
+        }
         $codes = array_column($criteria, 'code');
         $result = [];
 
@@ -102,9 +106,11 @@ class MatrixHealthAnalyzer
     /**
      * @return array<int, array<string, mixed>>
      */
-    public function robustness(int $samples = 2000, int $seed = 42): array
+    public function robustness(int $samples = 2000, int $seed = 42, ?array $criteria = null, ?array $careers = null): array
     {
-        [$criteria, $careers] = $this->loadData();
+        if ($criteria === null || $careers === null) {
+            [$criteria, $careers] = $this->loadData();
+        }
         $codes = array_column($criteria, 'code');
         mt_srand($seed);
 
@@ -162,9 +168,11 @@ class MatrixHealthAnalyzer
     /**
      * @return array<string, mixed>
      */
-    public function tieCases(): array
+    public function tieCases(?array $criteria = null, ?array $careers = null): array
     {
-        [$criteria, $careers] = $this->loadData();
+        if ($criteria === null || $careers === null) {
+            [$criteria, $careers] = $this->loadData();
+        }
         $codes = array_column($criteria, 'code');
         $cases = [];
 
@@ -199,14 +207,44 @@ class MatrixHealthAnalyzer
     /**
      * @return array<string, mixed>
      */
-    public function analyze(int $samples = 2000, int $seed = 42): array
+    public function analyze(int $samples = 2000, int $seed = 42, ?array $criteria = null, ?array $careers = null): array
     {
         return [
-            'self_consistency' => $this->selfConsistency(),
-            'nearest_neighbors' => $this->nearestNeighbors(),
-            'robustness' => $this->robustness($samples, $seed),
-            'tie_cases' => $this->tieCases(),
+            'self_consistency' => $this->selfConsistency($criteria, $careers),
+            'nearest_neighbors' => $this->nearestNeighbors($criteria, $careers),
+            'robustness' => $this->robustness($samples, $seed, $criteria, $careers),
+            'tie_cases' => $this->tieCases($criteria, $careers),
         ];
+    }
+
+    public function isHealthy(array $health): bool
+    {
+        foreach ($health['self_consistency'] as $row) {
+            if ($row['rank'] !== 1 || ($row['margin'] * 100) < 2.0) {
+                return false;
+            }
+        }
+
+        foreach ($health['robustness'] as $row) {
+            if ($row['percent'] < 80.0) {
+                return false;
+            }
+        }
+
+        foreach ($health['nearest_neighbors'] as $row) {
+            foreach ($row['nearest'] as $index => $neighbor) {
+                if ($index === 0 && $neighbor['distance'] < 3.0) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public function analyzeMatrix(array $criteria, array $careers, int $samples = 500, int $seed = 42): array
+    {
+        return $this->analyze($samples, $seed, $criteria, $careers);
     }
 
     /**

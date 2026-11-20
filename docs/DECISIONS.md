@@ -166,3 +166,6 @@ Format: `D-xx` — keputusan, opsi, rekomendasi/status.
 | cyber | data_analysis | 3→4 | Analisis log & SIEM |
 | cyber | coding | 3→2 | Analis SOC dominan memakai tools, bukan menulis kode |
 | cyber | network_infra | 4→3 | Memahami jaringan, tidak merancang/mengelolanya |
+
+## D-24 Kriteria tidak CRUD/nonaktif dari UI
+- Keputusan final: kriteria tidak mendukung create/delete/nonaktif dari UI admin, karena perubahan kuesioner memengaruhi seluruh matriks dan hasil. Hanya bobot/metadata kriteria yang dapat diubah. Status: disetujui.

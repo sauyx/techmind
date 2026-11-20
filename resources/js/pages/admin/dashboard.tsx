@@ -45,6 +45,10 @@ type Props = {
         fallback: number;
         average_latency_ms: number | null;
     };
+    matrix_health: {
+        healthy: boolean;
+        label: string;
+    };
     career_distribution: DistributionItem[];
     recent_feedbacks: RecentFeedback[];
 };
@@ -52,6 +56,7 @@ type Props = {
 export default function AdminDashboard({
     kpi,
     ai_summary,
+    matrix_health,
     career_distribution,
     recent_feedbacks,
 }: Props) {
@@ -131,6 +136,18 @@ export default function AdminDashboard({
                                 ? `${Math.round((ai_summary.success / ai_summary.total) * 100)}% berhasil, ${Math.round((ai_summary.fallback / ai_summary.total) * 100)}% fallback, rata-rata latensi ${ai_summary.average_latency_ms ?? 0} ms`
                                 : 'Belum ada penjelasan AI yang tersimpan.'}
                         </p>
+                    </section>
+
+                    <section className="rounded-xl border border-zinc-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_1px_3px_rgba(0,0,0,0.02)] sm:p-6">
+                        <p className="text-[11px] font-semibold tracking-[0.08em] text-brand uppercase">
+                            Matriks
+                        </p>
+                        <h2 className="mt-1 text-base font-semibold tracking-[-0.015em] text-zinc-950">
+                            {matrix_health.label}
+                        </h2>
+                        <a href="/admin/kesehatan-matriks" className="mt-2 inline-block text-sm text-brand">
+                            Lihat detail
+                        </a>
                     </section>
 
                     <section className="rounded-xl border border-zinc-200/80 bg-white p-4 shadow-[0_1px_2px_rgba(0,0,0,0.03),0_1px_3px_rgba(0,0,0,0.02)] sm:p-6">

@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import AdminLayout from '@/layouts/admin-layout';
 import { Button } from '@/components/ui/button';
 
@@ -138,17 +138,33 @@ export default function CareersIndex({
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3.5">
-                                                <Button
-                                                    asChild
-                                                    variant="outline"
-                                                    size="sm"
-                                                >
-                                                    <Link
-                                                        href={`/admin/careers/${career.id}/edit`}
+                                                <div className="flex flex-wrap gap-2">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() =>
+                                                            router.patch(
+                                                                `/admin/careers/${career.id}/toggle`,
+                                                            )
+                                                        }
                                                     >
-                                                        Edit
-                                                    </Link>
-                                                </Button>
+                                                        {career.is_active
+                                                            ? 'Nonaktifkan'
+                                                            : 'Aktifkan'}
+                                                    </Button>
+                                                    <Button
+                                                        asChild
+                                                        variant="outline"
+                                                        size="sm"
+                                                    >
+                                                        <Link
+                                                            href={`/admin/careers/${career.id}/edit`}
+                                                        >
+                                                            Edit
+                                                        </Link>
+                                                    </Button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))}
