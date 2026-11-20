@@ -16,6 +16,7 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
     public int $lastAttempts = 1;
 
     public ?string $lastError = null;
+    public ?int $lastHttpStatus = null;
 
     public function explain(TestSession $session): AiExplanationResult
     {
@@ -84,6 +85,8 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
                 }
                 throw new RuntimeException('Koneksi AI gagal: '.$this->lastError);
             }
+
+            $this->lastHttpStatus = $response->status();
 
             if ($response->successful()) {
                 break;

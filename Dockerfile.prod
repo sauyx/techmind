@@ -1,0 +1,41 @@
+# Stage 1: frontend build
+FROM node:24-alpine AS frontend
+RUN apk add --no-cache php php-cli php-phar php-mbstring php-xml php-dom php-pdo php-tokenizer php-openssl php-session php-fileinfo composer
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views bootstrap/cache && rm -f bootstrap/cache/*.php && cp .env.docker .env && php artisan key:generate --force
+RUN npm run build
+
+# Stage 2: composer dependencies
+FROM composer:2 AS vendor
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
+
+# Stage 3: runtime
+FROM php:8.4-fpm-alpine
+RUN apk add --no-cache \
+    bash mysql-client libpng-dev libjpeg-turbo-dev freetype-dev libzip-dev icu-dev oniguruma-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" pdo_mysql mbstring exif bcmath gd zip intl opcache
+
+WORKDIR /var/www/html
+
+COPY --from=frontend /app/vendor ./vendor
+COPY . .
+COPY --from=frontend /app/public/build ./public/build
+
+RUN mkdir -p storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs bootstrap/cache \
+    && rm -f bootstrap/cache/*.php \
+    && chown -R www-data:www-data storage bootstrap/cache
+
+COPY docker/php.ini /usr/local/etc/php/conf.d/99-techmind.ini
+COPY docker/entrypoint.prod.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["php-fpm", "-F"]

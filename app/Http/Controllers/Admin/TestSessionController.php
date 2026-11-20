@@ -57,7 +57,7 @@ class TestSessionController extends Controller
         ]);
     }
 
-    public function destroy(TestSession $session)
+    public function destroy(TestSession $session): \Illuminate\Http\RedirectResponse
     {
         $session->delete();
 

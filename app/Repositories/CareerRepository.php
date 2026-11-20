@@ -4,6 +4,8 @@ namespace App\Repositories;
 
 use App\Contracts\CareerRepository as CareerRepositoryContract;
 use App\Models\Career;
+use App\Models\CareerProfile;
+use App\Models\Criterion;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -13,14 +15,49 @@ class CareerRepository implements CareerRepositoryContract
     {
         $version = $this->referenceVersion();
 
-        return Cache::remember('techmind:ref:v'.$version.':careers:active', 600, function () {
-            return Career::query()
+        $cached = Cache::remember('techmind:ref:v'.$version.':careers:active', 600, function () {
+            $careers = Career::query()
                 ->where('is_active', true)
                 ->with(['careerProfiles.criterion'])
                 ->orderBy('sort_order')
                 ->orderBy('id')
                 ->get();
+
+            return $careers->map(function (Career $career) {
+                return [
+                    'career' => $career->getAttributes(),
+                    'profiles' => $career->careerProfiles->map(function (CareerProfile $profile) {
+                        return [
+                            'profile' => $profile->getAttributes(),
+                            'criterion' => $profile->criterion?->getAttributes(),
+                        ];
+                    })->all(),
+                ];
+            })->all();
         });
+
+        $collection = new Collection;
+
+        foreach ($cached as $item) {
+            $career = new Career;
+            $career->forceFill($item['career']);
+            $profiles = new Collection;
+
+            foreach ($item['profiles'] as $profileData) {
+                $profile = new CareerProfile;
+                $profile->forceFill($profileData['profile']);
+                if ($profileData['criterion'] !== null) {
+                    $profile->setRelation('criterion', new Criterion($profileData['criterion']));
+                }
+                $profiles->push($profile);
+            }
+
+            $career->setRelation('careerProfiles', $profiles);
+
+            $collection->push($career);
+        }
+
+        return $collection;
     }
 
     public function flushCache(): void

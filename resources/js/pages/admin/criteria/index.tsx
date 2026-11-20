@@ -16,6 +16,12 @@ type Criterion = {
 
 type Props = {
     criteria: Criterion[];
+    careers: {
+        code: string;
+        name: string;
+        sort_order: number;
+        scores: Record<string, number>;
+    }[];
 };
 
 const stepTitles: Record<number, string> = {
@@ -24,7 +30,7 @@ const stepTitles: Record<number, string> = {
     3: 'Teknis & Bisnis',
 };
 
-export default function CriteriaIndex({ criteria }: Props) {
+export default function CriteriaIndex({ criteria, careers }: Props) {
     const { flash } = usePage().props as {
         flash?: { success?: string | null };
     };
@@ -33,6 +39,33 @@ export default function CriteriaIndex({ criteria }: Props) {
         title: stepTitles[step],
         items: criteria.filter((criterion) => criterion.step_group === step),
     }));
+
+    const [preview, setPreview] = useState<any>(null);
+    const [previewing, setPreviewing] = useState(false);
+
+    async function checkImpact() {
+        setPreviewing(true);
+        try {
+            const response = await fetch('/admin/kesehatan-matriks/preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    criteria: criteria.map((c) => ({
+                        code: c.code,
+                        name: c.name,
+                        sort_order: c.display_order,
+                        multiplier: c.weight,
+                    })),
+                    careers,
+                    samples: 300,
+                    seed: 42,
+                }),
+            });
+            setPreview(await response.json());
+        } finally {
+            setPreviewing(false);
+        }
+    }
 
     return (
         <>
@@ -64,6 +97,17 @@ export default function CriteriaIndex({ criteria }: Props) {
                         tersimpan sesuai snapshot.
                     </div>
 
+                    <div className="flex items-center gap-3">
+                        <Button type="button" variant="outline" onClick={checkImpact} disabled={previewing}>
+                            {previewing ? 'Memeriksa...' : 'Cek Dampak'}
+                        </Button>
+                        {preview ? (
+                            <span className={preview.healthy ? 'text-sm text-emerald-700' : 'text-sm text-red-600'}>
+                                {preview.healthy ? 'Matriks sehat' : 'Perlu perhatian'}
+                            </span>
+                        ) : null}
+                    </div>
+
                     {groups.map((group) => (
                         <section
                             key={group.step}
@@ -84,6 +128,7 @@ export default function CriteriaIndex({ criteria }: Props) {
                                     <CriterionRow
                                         key={criterion.id}
                                         criterion={criterion}
+                                        careers={careers}
                                     />
                                 ))}
                             </div>
@@ -95,8 +140,21 @@ export default function CriteriaIndex({ criteria }: Props) {
     );
 }
 
-function CriterionRow({ criterion }: { criterion: Criterion }) {
+function CriterionRow({
+    criterion,
+    careers,
+}: {
+    criterion: Criterion;
+    careers: {
+        code: string;
+        name: string;
+        sort_order: number;
+        scores: Record<string, number>;
+    }[];
+}) {
     const [editing, setEditing] = useState(false);
+    const [previewing, setPreviewing] = useState(false);
+    const [preview, setPreview] = useState<any>(null);
 
     const form = useForm({
         name: criterion.name,

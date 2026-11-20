@@ -75,6 +75,7 @@ class MatrixHealthController extends Controller
         ]);
     }
 
+    /** @param array<string, mixed> $health */
     private function isHealthy(array $health): bool
     {
         foreach ($health['self_consistency'] as $row) {

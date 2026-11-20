@@ -18,7 +18,7 @@ class MatrixHealth extends Command
         $result = $analyzer->analyze($samples, $seed);
 
         if ($this->option('json')) {
-            $this->line(json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+            $this->line((string) json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
             return self::SUCCESS;
         }
@@ -60,7 +60,7 @@ class MatrixHealth extends Command
 
         $this->info('Tie cases (rating seragam + satu kriteria tinggi):');
         $this->line('Jumlah kasus: '.$result['tie_cases']['total_cases']);
-        $this->line('Maks karier seri di rank #1: '.$result['tie_cases']['max_top_tie_count']);
+        $this->line('Maks karier seri di rank #1: '.(string) ($result['tie_cases']['max_top_tie_count'] ?? 0));
         $rows = [];
         foreach ($result['tie_cases']['cases'] as $case) {
             $rows[] = [

@@ -3,7 +3,9 @@
 namespace App\Repositories;
 
 use App\Contracts\CareerProfileRepository as CareerProfileRepositoryContract;
+use App\Models\Career;
 use App\Models\CareerProfile;
+use App\Models\Criterion;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 
@@ -36,11 +38,35 @@ class CareerProfileRepository implements CareerProfileRepositoryContract
     {
         $version = $this->referenceVersion();
 
-        return Cache::remember('techmind:ref:v'.$version.':career_profiles:matrix', 600, function () {
+        $cached = Cache::remember('techmind:ref:v'.$version.':career_profiles:matrix', 600, function () {
             return CareerProfile::query()
                 ->with(['career', 'criterion'])
-                ->get();
+                ->get()
+                ->map(function (CareerProfile $profile) {
+                    return [
+                        'profile' => $profile->getAttributes(),
+                        'career' => $profile->career?->getAttributes(),
+                        'criterion' => $profile->criterion?->getAttributes(),
+                    ];
+                })
+                ->all();
         });
+
+        $collection = new Collection;
+
+        foreach ($cached as $item) {
+            $profile = new CareerProfile;
+            $profile->forceFill($item['profile']);
+            if ($item['career'] !== null) {
+                $profile->setRelation('career', new Career($item['career']));
+            }
+            if ($item['criterion'] !== null) {
+                $profile->setRelation('criterion', new Criterion($item['criterion']));
+            }
+            $collection->push($profile);
+        }
+
+        return $collection;
     }
 
     public function flushCache(): void

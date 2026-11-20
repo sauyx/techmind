@@ -16,7 +16,7 @@ class TestController extends Controller
         private TestSubmissionService $submission,
     ) {}
 
-    public function create()
+    public function create(): \Inertia\Response
     {
         $criteria = $this->criteria->activeOrdered()->map(fn ($criterion) => [
             'code' => (string) $criterion->code,
@@ -31,7 +31,7 @@ class TestController extends Controller
         ]);
     }
 
-    public function store(StoreTestRequest $request)
+    public function store(StoreTestRequest $request): \Illuminate\Http\RedirectResponse
     {
         $session = $this->submission->submit(
             $request->validated('visitor_name'),

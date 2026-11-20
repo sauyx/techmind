@@ -13,13 +13,25 @@ class CriterionRepository implements CriterionRepositoryContract
     {
         $version = $this->referenceVersion();
 
-        return Cache::remember('techmind:ref:v'.$version.':criteria:active', 600, function () {
+        $cached = Cache::remember('techmind:ref:v'.$version.':criteria:active', 600, function () {
             return Criterion::query()
                 ->where('is_active', true)
                 ->orderBy('display_order')
                 ->orderBy('id')
-                ->get();
+                ->get()
+                ->map(fn (Criterion $criterion) => $criterion->getAttributes())
+                ->all();
         });
+
+        return new Collection(array_map(
+            function (array $attributes) {
+                $model = new Criterion;
+                $model->forceFill($attributes);
+
+                return $model;
+            },
+            $cached
+        ));
     }
 
     public function flushCache(): void
