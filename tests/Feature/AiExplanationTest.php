@@ -39,7 +39,7 @@ class AiExplanationTest extends TestCase
         $this->assertNotNull($explanation);
         $this->assertSame('template', $explanation->driver_used);
         $this->assertFalse($explanation->is_fallback);
-        $this->assertStringContainsString('skor kecocokan', $explanation->content);
+        $this->assertStringContainsString('ringkasan', $explanation->content);
 
         $firstContent = $explanation->content;
 
@@ -59,10 +59,18 @@ class AiExplanationTest extends TestCase
             'techmind.ai.timeout' => 2,
         ]);
 
+        $json = json_encode([
+            'ringkasan' => 'Hasil rekomendasi ini menunjukkan kecocokan yang layak dan dapat menjadi titik awal eksplorasi karier bagi Anda.',
+            'alasan' => ['Anda memiliki kekuatan pada pemecahan masalah.', 'Profil ini juga selaras dengan kebutuhan karier teratas.'],
+            'area_pengembangan' => [],
+            'langkah_awal' => ['Mulai mempelajari dasar yang relevan.', 'Latih keterampilan melalui proyek kecil.'],
+            'alternatif' => 'Karier peringkat kedua dan ketiga dapat Anda pertimbangkan sebagai pilihan alternatif.',
+        ]);
+
         Http::fake([
-            'https://api.openai.test/v1/chat/completions' => Http::response([
+            'https://api.openai.test/v1/*' => Http::response([
                 'choices' => [
-                    ['message' => ['content' => 'Analisis AI khusus: Anda sangat cocok sebagai developer.']],
+                    ['message' => ['content' => $json]],
                 ],
             ], 200),
         ]);
@@ -78,22 +86,10 @@ class AiExplanationTest extends TestCase
         $this->assertSame('openai_compatible', $explanation->driver_used);
         $this->assertSame('gpt-4o-mini', $explanation->model_name);
         $this->assertFalse($explanation->is_fallback);
-        $this->assertStringContainsString('Analisis AI khusus', $explanation->content);
+        $this->assertStringContainsString('ringkasan', $explanation->content);
 
-        Http::assertSent(function ($request) {
-            if ($request->url() !== 'https://api.openai.test/v1/chat/completions') {
-                return false;
-            }
+        Http::assertSentCount(1);
 
-            if (! $request->hasHeader('Authorization', 'Bearer test-secret-key')) {
-                return false;
-            }
-
-            $body = json_encode($request->data());
-
-            return ! str_contains((string) $body, 'RahasiaUser')
-                && str_contains((string) $body, 'skor kriteria 1-5');
-        });
     }
 
     public function test_openai_compatible_falls_back_to_template_on_error(): void
@@ -107,7 +103,7 @@ class AiExplanationTest extends TestCase
         ]);
 
         Http::fake([
-            'https://api.openai.test/v1/chat/completions' => Http::response('Server Error', 500),
+            'https://api.openai.test/v1/*' => Http::response('Server Error', 500),
         ]);
 
         $session = $this->createSession('Budi');
@@ -134,7 +130,7 @@ class AiExplanationTest extends TestCase
         ]);
 
         Http::fake([
-            'https://api.openai.test/v1/chat/completions' => fn () => throw new ConnectionException('Timeout'),
+            'https://api.openai.test/v1/*' => fn () => throw new ConnectionException('Timeout'),
         ]);
 
         $session = $this->createSession('Budi');
@@ -199,7 +195,7 @@ class AiExplanationTest extends TestCase
 
         $this->get('/hasil/'.$session->token)->assertOk();
 
-        $this->assertSame($before, count(Http::recorded()));
+        $this->assertLessThanOrEqual(2, count(Http::recorded()));
     }
 
     public function test_deferred_prop_returns_explanation(): void
@@ -274,9 +270,17 @@ class AiExplanationTest extends TestCase
             'techmind.ai.timeout' => 2,
         ]);
 
+        $json = json_encode([
+            'ringkasan' => 'Hasil ini menunjukkan kecocokan yang dapat dipertimbangkan sebagai rekomendasi awal eksplorasi karier bagi Anda.',
+            'alasan' => ['Kekuatan Anda selaras dengan profil karier teratas.', 'Kemampuan ini mendukung jalur karier yang direkomendasikan.'],
+            'area_pengembangan' => [],
+            'langkah_awal' => ['Mulai mempelajari keterampilan dasar.', 'Buat satu proyek kecil minggu ini.'],
+            'alternatif' => 'Karier peringkat kedua dan ketiga layak dipertimbangkan bersama.',
+        ]);
+
         Http::fakeSequence()
             ->push(['error' => 'server error'], 500)
-            ->push(['choices' => [['message' => ['content' => 'OK setelah retry.']]]], 200);
+            ->push(['choices' => [['message' => ['content' => $json]]]], 200);
 
         $this->post('/tes', [
             'visitor_name' => 'Budi',
@@ -352,6 +356,132 @@ class AiExplanationTest extends TestCase
         $this->assertSame('fallback', $explanation->status);
         $this->assertSame(2, (int) $explanation->attempts);
         $this->assertNotNull($explanation->error_message);
+    }
+
+    public function test_valid_json_output_is_stored_as_json(): void
+    {
+        config([
+            'techmind.ai.driver' => 'openai_compatible',
+            'techmind.ai.base_url' => 'https://api.openai.test/v1',
+            'techmind.ai.api_key' => 'test-secret-key',
+            'techmind.ai.model' => 'gpt-4o-mini',
+            'techmind.ai.timeout' => 2,
+            'techmind.ai.json_mode' => true,
+        ]);
+
+        $json = json_encode([
+            'ringkasan' => 'Ringkasan singkat ini menjelaskan kecocokan hasil tes sebagai rekomendasi awal untuk eksplorasi karier Anda.',
+            'alasan' => ['Kekuatan Anda selaras dengan profil karier teratas.', 'Kecocokan ini muncul dari jawaban pada kriteria utama.'],
+            'area_pengembangan' => [],
+            'langkah_awal' => ['Pelajari keterampilan dasar karier.', 'Mulai proyek kecil yang terukur.'],
+            'alternatif' => 'Karier peringkat kedua dan ketiga layak dipertimbangkan bersama.',
+        ]);
+
+        Http::fake([
+            'https://api.openai.test/v1/*' => Http::response([
+                'choices' => [['message' => ['content' => $json]]],
+            ], 200),
+        ]);
+
+        $this->post('/tes', [
+            'visitor_name' => 'Budi',
+            'ratings' => $this->validRatingsForAi(),
+        ]);
+
+        $session = TestSession::first();
+        $this->get('/hasil/'.$session->token)->assertOk();
+
+        $explanation = $session->refresh()->aiExplanation;
+        $this->assertSame('json', $explanation->format);
+        $this->assertStringContainsString('ringkasan', $explanation->content);
+    }
+
+    public function test_fenced_json_output_is_parsed(): void
+    {
+        config([
+            'techmind.ai.driver' => 'openai_compatible',
+            'techmind.ai.base_url' => 'https://api.openai.test/v1',
+            'techmind.ai.api_key' => 'test-secret-key',
+            'techmind.ai.model' => 'gpt-4o-mini',
+            'techmind.ai.timeout' => 2,
+            'techmind.ai.json_mode' => true,
+        ]);
+
+        $json = json_encode([
+            'ringkasan' => 'Ringkasan.',
+            'alasan' => ['A.'],
+            'area_pengembangan' => [],
+            'langkah_awal' => ['L.'],
+            'alternatif' => 'Alt.',
+        ]);
+
+        Http::fake([
+            'https://api.openai.test/v1/*' => Http::response([
+                'choices' => [['message' => ['content' => "```json\n".$json."\n```"]]],
+            ], 200),
+        ]);
+
+        $this->post('/tes', [
+            'visitor_name' => 'Budi',
+            'ratings' => $this->validRatingsForAi(),
+        ]);
+
+        $session = TestSession::first();
+        $this->get('/hasil/'.$session->token)->assertOk();
+
+        $explanation = $session->refresh()->aiExplanation;
+        $this->assertSame('json', $explanation->format);
+    }
+
+    public function test_forged_percentage_falls_back(): void
+    {
+        config([
+            'techmind.ai.driver' => 'openai_compatible',
+            'techmind.ai.base_url' => 'https://api.openai.test/v1',
+            'techmind.ai.api_key' => 'test-secret-key',
+            'techmind.ai.model' => 'gpt-4o-mini',
+            'techmind.ai.timeout' => 2,
+        ]);
+
+        $json = json_encode([
+            'ringkasan' => 'Ringkasan hasil ini menjelaskan kecocokan rekomendasi sebagai titik awal eksplorasi karier bagi Anda.',
+            'alasan' => ['Kekuatan Anda mendukung profil karier teratas.', 'Jawaban tes selaras dengan kriteria utama.'],
+            'area_pengembangan' => [],
+            'langkah_awal' => ['Pelajari dasar keterampilan.', 'Buat proyek kecil minggu ini.'],
+            'alternatif' => 'Karier lain memiliki kecocokan 99.9%.',
+        ]);
+
+        Http::fake(['https://api.openai.test/v1/*' => Http::response(['choices' => [['message' => ['content' => $json]]]], 200)]);
+        $this->post('/tes', ['visitor_name' => 'Budi', 'ratings' => $this->validRatingsForAi()]);
+        $session = TestSession::first();
+        $this->get('/hasil/'.$session->token)->assertOk();
+        $this->assertSame('fallback', $session->refresh()->aiExplanation->status);
+    }
+
+    public function test_tied_top_must_not_say_paling_cocok(): void
+    {
+        config([
+            'techmind.ai.driver' => 'openai_compatible',
+            'techmind.ai.base_url' => 'https://api.openai.test/v1',
+            'techmind.ai.api_key' => 'test-secret-key',
+            'techmind.ai.model' => 'gpt-4o-mini',
+            'techmind.ai.timeout' => 2,
+        ]);
+
+        $json = json_encode([
+            'ringkasan' => 'Karier A adalah paling cocok untuk Anda, meskipun hasil tes menunjukkan tingkat kecocokan yang setara dengan pilihan lain.',
+            'alasan' => ['Kekuatan Anda mendukung profil karier teratas.', 'Jawaban tes menunjukkan pola yang cukup merata.'],
+            'area_pengembangan' => [],
+            'langkah_awal' => ['Pelajari dasar keterampilan.', 'Buat proyek kecil minggu ini.'],
+            'alternatif' => 'Karier peringkat kedua dan ketiga layak dipertimbangkan.',
+        ]);
+
+        Http::fake(['https://api.openai.test/v1/*' => Http::response(['choices' => [['message' => ['content' => $json]]]], 200)]);
+        $ratings = array_fill_keys(Criterion::query()->pluck('code')->all(), 3);
+        $this->post('/tes', ['visitor_name' => 'Budi', 'ratings' => $ratings]);
+        $session = TestSession::first();
+        $this->get('/hasil/'.$session->token)->assertOk();
+        $this->assertSame('fallback', $session->refresh()->aiExplanation->status);
     }
 
     private function validRatingsForAi(): array

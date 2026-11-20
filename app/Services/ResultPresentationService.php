@@ -124,6 +124,7 @@ class ResultPresentationService
             'careers' => $careerDetails,
             'ai_explanation' => $aiExplanation ? [
                 'content' => (string) $aiExplanation->content,
+                'format' => (string) $aiExplanation->format,
                 'driver_used' => (string) $aiExplanation->driver_used,
                 'is_fallback' => (bool) $aiExplanation->is_fallback,
                 'source_label' => $aiExplanation->driver_used === 'openai_compatible' && ! $aiExplanation->is_fallback
@@ -146,6 +147,7 @@ class ResultPresentationService
 
         return [
             'content' => (string) $aiExplanation->content,
+            'format' => (string) $aiExplanation->format,
             'driver_used' => (string) $aiExplanation->driver_used,
             'is_fallback' => (bool) $aiExplanation->is_fallback,
             'source_label' => $aiExplanation->driver_used === 'openai_compatible' && ! $aiExplanation->is_fallback

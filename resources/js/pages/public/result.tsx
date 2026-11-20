@@ -72,6 +72,7 @@ type CareerDetail = {
 
 type AiExplanation = {
     content: string;
+    format: 'text' | 'json';
     driver_used: string;
     is_fallback: boolean;
     source_label: string;
@@ -416,9 +417,150 @@ export default function ResultPage({
                                                     {ai_explanation.source_label}
                                                 </span>
                                             </div>
-                                            <p className="mt-4 text-sm leading-7 whitespace-pre-line text-zinc-700">
-                                                {ai_explanation.content}
-                                            </p>
+                                            {(() => {
+                                                let parsed: any = null;
+                                                try {
+                                                    parsed = JSON.parse(
+                                                        ai_explanation.content,
+                                                    );
+                                                } catch {
+                                                    parsed = null;
+                                                }
+                                                if (
+                                                    parsed &&
+                                                    typeof parsed ===
+                                                        'object' &&
+                                                    parsed.ringkasan
+                                                ) {
+                                                    return (
+                                                        <div className="mt-4 space-y-4 text-sm text-zinc-700">
+                                                            <div>
+                                                                <p className="text-[11px] font-semibold tracking-[0.08em] text-brand uppercase">
+                                                                    Ringkasan
+                                                                </p>
+                                                                <p className="mt-1 leading-7">
+                                                                    {
+                                                                        parsed.ringkasan
+                                                                    }
+                                                                </p>
+                                                            </div>
+                                                            {Array.isArray(
+                                                                parsed.alasan,
+                                                            ) &&
+                                                            parsed.alasan
+                                                                .length >
+                                                                0 ? (
+                                                                <div>
+                                                                    <p className="text-[11px] font-semibold tracking-[0.08em] text-brand uppercase">
+                                                                        Mengapa
+                                                                        cocok
+                                                                        untuk
+                                                                        Anda
+                                                                    </p>
+                                                                    <ul className="mt-1 list-disc space-y-1 pl-5 leading-7">
+                                                                        {parsed.alasan.map(
+                                                                            (
+                                                                                item: string,
+                                                                                idx: number,
+                                                                            ) => (
+                                                                                <li
+                                                                                    key={
+                                                                                        idx
+                                                                                    }
+                                                                                >
+                                                                                    {
+                                                                                        item
+                                                                                    }
+                                                                                </li>
+                                                                            ),
+                                                                        )}
+                                                                    </ul>
+                                                                </div>
+                                                            ) : null}
+                                                            {Array.isArray(
+                                                                parsed.area_pengembangan,
+                                                            ) &&
+                                                            parsed
+                                                                .area_pengembangan
+                                                                .length >
+                                                                0 ? (
+                                                                <div>
+                                                                    <p className="text-[11px] font-semibold tracking-[0.08em] text-zinc-500 uppercase">
+                                                                        Yang
+                                                                        perlu
+                                                                        dikembangkan
+                                                                    </p>
+                                                                    <ul className="mt-1 list-disc space-y-1 pl-5 leading-7">
+                                                                        {parsed.area_pengembangan.map(
+                                                                            (
+                                                                                item: string,
+                                                                                idx: number,
+                                                                            ) => (
+                                                                                <li
+                                                                                    key={
+                                                                                        idx
+                                                                                    }
+                                                                                >
+                                                                                    {
+                                                                                        item
+                                                                                    }
+                                                                                </li>
+                                                                            ),
+                                                                        )}
+                                                                    </ul>
+                                                                </div>
+                                                            ) : null}
+                                                            {Array.isArray(
+                                                                parsed.langkah_awal,
+                                                            ) &&
+                                                            parsed.langkah_awal
+                                                                .length >
+                                                                0 ? (
+                                                                <div>
+                                                                    <p className="text-[11px] font-semibold tracking-[0.08em] text-brand uppercase">
+                                                                        Langkah
+                                                                        awal
+                                                                        minggu
+                                                                        ini
+                                                                    </p>
+                                                                    <ol className="mt-1 list-decimal space-y-1 pl-5 leading-7">
+                                                                        {parsed.langkah_awal.map(
+                                                                            (
+                                                                                item: string,
+                                                                                idx: number,
+                                                                            ) => (
+                                                                                <li
+                                                                                    key={
+                                                                                        idx
+                                                                                    }
+                                                                                >
+                                                                                    {
+                                                                                        item
+                                                                                    }
+                                                                                </li>
+                                                                            ),
+                                                                        )}
+                                                                    </ol>
+                                                                </div>
+                                                            ) : null}
+                                                            {parsed.alternatif ? (
+                                                                <p className="text-sm leading-7 text-zinc-600">
+                                                                    {
+                                                                        parsed.alternatif
+                                                                    }
+                                                                </p>
+                                                            ) : null}
+                                                        </div>
+                                                    );
+                                                }
+                                                return (
+                                                    <p className="mt-4 text-sm leading-7 whitespace-pre-line text-zinc-700">
+                                                        {
+                                                            ai_explanation.content
+                                                        }
+                                                    </p>
+                                                );
+                                            })()}
                                             {ai_explanation.is_fallback ? (
                                                 <p className="mt-4 rounded-lg border border-zinc-200/80 bg-zinc-50/80 px-3 py-2 text-xs leading-relaxed text-zinc-500">
                                                     Ringkasan disusun dari

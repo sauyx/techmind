@@ -52,7 +52,39 @@
 
     <div class="card">
         <div class="h2">Ringkasan Analisis Personal</div>
-        <div class="p" style="white-space: pre-line;">{{ $ai_explanation['content'] }}</div>
+        @php $parsed = json_decode($ai_explanation['content'] ?? '', true); @endphp
+        @if(is_array($parsed) && isset($parsed['ringkasan']))
+            <div class="p">{{ $parsed['ringkasan'] }}</div>
+            @if(!empty($parsed['alasan']))
+                <div class="p"><strong>Mengapa cocok:</strong></div>
+                <ul class="p">
+                    @foreach($parsed['alasan'] as $item)
+                        <li>{{ $item }}</li>
+                    @endforeach
+                </ul>
+            @endif
+            @if(!empty($parsed['area_pengembangan']))
+                <div class="p"><strong>Yang perlu dikembangkan:</strong></div>
+                <ul class="p">
+                    @foreach($parsed['area_pengembangan'] as $item)
+                        <li>{{ $item }}</li>
+                    @endforeach
+                </ul>
+            @endif
+            @if(!empty($parsed['langkah_awal']))
+                <div class="p"><strong>Langkah awal:</strong></div>
+                <ol class="p">
+                    @foreach($parsed['langkah_awal'] as $item)
+                        <li>{{ $item }}</li>
+                    @endforeach
+                </ol>
+            @endif
+            @if(!empty($parsed['alternatif']))
+                <div class="p">{{ $parsed['alternatif'] }}</div>
+            @endif
+        @else
+            <div class="p" style="white-space: pre-line;">{{ $ai_explanation['content'] }}</div>
+        @endif
     </div>
 
     <div class="card chart-box">

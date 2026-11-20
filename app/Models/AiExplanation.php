@@ -14,6 +14,7 @@ class AiExplanation extends Model
         'test_session_id',
         'driver_used',
         'status',
+        'format',
         'attempts',
         'model_name',
         'content',

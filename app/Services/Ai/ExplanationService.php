@@ -73,6 +73,7 @@ final class ExplanationService
                     true,
                     $result->latencyMs,
                     'fallback',
+                    'json',
                     max(1, $this->openAiExplainer->lastAttempts),
                     $this->openAiExplainer->lastError ?? $e->getMessage(),
                 );

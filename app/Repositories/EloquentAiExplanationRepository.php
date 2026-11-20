@@ -40,6 +40,7 @@ class EloquentAiExplanationRepository implements AiExplanationRepository
             'test_session_id' => $session->id,
             'driver_used' => $result->driverUsed,
             'status' => $result->status,
+            'format' => $result->format,
             'attempts' => $result->attempts,
             'model_name' => $result->modelName,
             'content' => $result->content,

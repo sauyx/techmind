@@ -10,6 +10,8 @@ final class TemplateAiExplainer implements AiExplainerInterface
 {
     public function explain(TestSession $session): AiExplanationResult
     {
+        $payloadBuilder = new \App\Services\Ai\ExplanationPayloadBuilder();
+        $payload = $payloadBuilder->build($session);
         $topResults = $session->results->take(3);
         $ratings = [];
         $criterionNames = [];
@@ -78,16 +80,76 @@ final class TemplateAiExplainer implements AiExplainerInterface
             $closing = 'Peringkat kedua dan ketiga yang juga layak Anda pertimbangkan adalah '.$alternatives.'. Kesimpulan ini bersifat relatif dan sebaiknya digunakan sebagai titik awal eksplorasi, bukan keputusan akhir.';
         }
 
-        $paragraphs[] = trim($opening);
-        $paragraphs[] = trim($development);
-        $paragraphs[] = trim($closing);
+        $isTiedTop = (bool) ($payload['is_tied_top'] ?? false);
+        $tiedNames = (array) ($payload['tied_careers'] ?? []);
+        $topCareers = (array) ($payload['top_careers'] ?? []);
+        $topName = (string) ($topCareers[0]['name'] ?? ($topResults->first()?->career_name ?? ''));
+        $topPct = (string) ($topCareers[0]['match_percentage'] ?? ($topResults->first()?->match_percentage ?? ''));
+        $strengths = (array) ($payload['kekuatan_pengguna'] ?? []);
+        $development = (array) ($payload['area_pengembangan'] ?? []);
+
+        $variantIndex = hexdec(substr(hash('sha256', (string) $session->token), 0, 8)) % 2;
+        $openingVariants = [
+            'memiliki skor kecocokan tertinggi',
+            'menempati peringkat teratas dengan skor kecocokan',
+        ];
+        $ringkasan = $isTiedTop
+            ? 'Beberapa karier memiliki tingkat kecocokan yang sama, yaitu '.implode(', ', $tiedNames).'. Jawaban Anda cenderung merata, sehingga sistem belum bisa membedakan dengan jelas.'
+            : $topName.' '.$openingVariants[$variantIndex].' yaitu '.$topPct.'%. Hasil ini merupakan rekomendasi awal untuk eksplorasi, bukan keputusan akhir.';
+
+        $alasan = [];
+        if ($strengths !== []) {
+            $strengthText = 'Kekuatan utama Anda terlihat pada '.implode(', ', array_slice($strengths, 0, 3)).', yang selaras dengan profil karier teratas.';
+            $strengthTextVariants = [
+                $strengthText,
+                'Profil Anda kuat pada '.implode(', ', array_slice($strengths, 0, 3)).', sehingga berkaitan erat dengan kebutuhan karier teratas.',
+            ];
+            $alasan[] = $strengthTextVariants[$variantIndex];
+        } else {
+            $alasan[] = 'Belum ada kekuatan jawaban yang menonjol pada kriteria utama karier ini.';
+        }
+
+        $area = $development !== [] ? array_slice($development, 0, 2) : [];
+
+        $langkah = [];
+        $roadmap = $topCareers[0]['roadmap_awal'] ?? [];
+        $skills = $topCareers[0]['skills'] ?? [];
+        if ($skills !== []) {
+            $langkah[] = 'Pelajari dasar '.implode(', ', array_slice($skills, 0, 3)).' melalui kursus singkat.';
+        }
+        if ($roadmap !== []) {
+            $langkah[] = 'Ikuti langkah awal: '.implode(', ', array_slice($roadmap, 0, 2)).'.';
+        }
+        if ($langkah === []) {
+            $langkah[] = 'Mulai dengan proyek kecil untuk menguji minat Anda.';
+        }
+
+        $alternatif = $topResults->skip(1)->count() > 0
+            ? 'Peringkat berikutnya yang layak dipertimbangkan adalah '.$topResults->skip(1)->map(fn ($item) => $item->career_name.' ('.$item->match_percentage.'%)')->implode(' dan ').'.'
+            : 'Kesimpulan ini bersifat relatif.';
+
+        if ($isTiedTop) {
+            $alternatif = 'Karier-karier yang setara di atas layak Anda pertimbangkan bersama. Untuk hasil yang lebih tajam, ulangi tes dengan penilaian yang lebih tegas.';
+        }
+
+        $json = [
+            'ringkasan' => $ringkasan,
+            'alasan' => $alasan,
+            'area_pengembangan' => $area,
+            'langkah_awal' => $langkah,
+            'alternatif' => $alternatif,
+        ];
 
         return new AiExplanationResult(
-            implode("\n\n", $paragraphs),
+            json_encode($json, JSON_UNESCAPED_UNICODE),
             'template',
             null,
             false,
             0,
+            'success',
+            'json',
+            1,
+            null,
         );
     }
 }

@@ -11,6 +11,7 @@ readonly class AiExplanationResult
         public bool $isFallback = false,
         public ?int $latencyMs = null,
         public string $status = 'success',
+        public string $format = 'text',
         public int $attempts = 1,
         public ?string $errorMessage = null,
     ) {}
