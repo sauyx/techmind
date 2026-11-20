@@ -34,6 +34,12 @@
         </div>
     </div>
 
+    @if($topResult && !empty($topResult['is_tied']))
+    <div class="card" style="border-left: 4px solid #F59E0B;">
+        <div class="p">Beberapa karier memiliki tingkat kecocokan yang sama. Jawabanmu cenderung merata, sehingga sistem belum bisa membedakan dengan jelas. Coba ulangi tes dan beri penilaian yang lebih jujur pada hal yang benar-benar kamu sukai/tidak sukai.</div>
+    </div>
+    @endif
+
     @if($topResult)
     <div class="card" style="border-left: 4px solid #4F46E5;">
         <span class="badge">Rekomendasi Utama (Rank #1)</span>
@@ -68,7 +74,7 @@
                 @foreach($results as $item)
                 <tr>
                     <td>#{{ $item['rank'] }}</td>
-                    <td><strong>{{ $item['career_name'] }}</strong></td>
+                    <td><strong>{{ $item['career_name'] }}</strong>@if(!empty($item['is_tied'])) <span class="badge" style="background:#FEF3C7;color:#92400E;">Setara</span>@endif</td>
                     <td style="text-align: right;">{{ $item['match_percentage'] }}%</td>
                 </tr>
                 @endforeach

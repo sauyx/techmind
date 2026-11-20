@@ -25,6 +25,8 @@ type Criterion = { code: string; name: string; short_label: string };
 type ResultItem = {
     id: number;
     rank: number;
+    rank_label: string;
+    is_tied: boolean;
     career_code: string;
     career_name: string;
     saw_score: number;
@@ -373,6 +375,19 @@ export default function ResultPage({
                                 </div>
                             </div>
                         </section>
+                    ) : null}
+
+                    {topResult?.is_tied ? (
+                        <div
+                            role="status"
+                            className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900"
+                        >
+                            Beberapa karier memiliki tingkat kecocokan yang
+                            sama. Jawabanmu cenderung merata, sehingga sistem
+                            belum bisa membedakan dengan jelas. Coba ulangi tes
+                            dan beri penilaian yang lebih jujur pada hal yang
+                            benar-benar kamu sukai/tidak sukai.
+                        </div>
                     ) : null}
 
                     <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_340px]">
@@ -861,6 +876,11 @@ export default function ResultPage({
                                                     <div className="min-w-0 flex-1">
                                                         <p className="truncate text-sm font-medium text-zinc-950">
                                                             {item.career_name}
+                                                            {item.is_tied ? (
+                                                                <span className="ml-2 inline-flex items-center rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-medium text-amber-700">
+                                                                    Setara
+                                                                </span>
+                                                            ) : null}
                                                         </p>
                                                         <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-zinc-100">
                                                             <div

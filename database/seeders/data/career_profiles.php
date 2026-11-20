@@ -1,20 +1,22 @@
 <?php
 
 return [
+    // web_developer: logic 3->4 (logika state/alur aplikasi setara developer lain); visual_design 3->2 (mengimplementasikan desain, bukan merancang); user_empathy 4->3 (interaksi pengguna umumnya melalui desainer/PM); security 2->3 (wajib paham OWASP Top 10).
     'web_developer' => [
-        'logic_problem_solving' => 3,
+        'logic_problem_solving' => 4,
         'data_analysis' => 2,
         'math_statistics' => 1,
         'attention_detail' => 3,
-        'visual_design' => 3,
+        'visual_design' => 2,
         'creativity' => 4,
-        'user_empathy' => 4,
+        'user_empathy' => 3,
         'communication' => 4,
         'coding' => 5,
         'network_infra' => 2,
-        'security_awareness' => 2,
+        'security_awareness' => 3,
         'business_process' => 4,
     ],
+    // mobile_developer: tidak berubah (matriks asli sudah konsisten).
     'mobile_developer' => [
         'logic_problem_solving' => 4,
         'data_analysis' => 2,
@@ -29,6 +31,7 @@ return [
         'security_awareness' => 4,
         'business_process' => 3,
     ],
+    // backend_developer: security 4->5 (garis depan autentikasi, enkripsi, proteksi data & API); business_process 3->2 (mengimplementasikan aturan bisnis, bukan merumuskannya).
     'backend_developer' => [
         'logic_problem_solving' => 5,
         'data_analysis' => 3,
@@ -40,9 +43,10 @@ return [
         'communication' => 2,
         'coding' => 5,
         'network_infra' => 4,
-        'security_awareness' => 4,
-        'business_process' => 3,
+        'security_awareness' => 5,
+        'business_process' => 2,
     ],
+    // data_analyst: tidak berubah.
     'data_analyst' => [
         'logic_problem_solving' => 4,
         'data_analysis' => 5,
@@ -57,6 +61,7 @@ return [
         'security_awareness' => 2,
         'business_process' => 3,
     ],
+    // ui_ux_designer: tidak berubah.
     'ui_ux_designer' => [
         'logic_problem_solving' => 3,
         'data_analysis' => 3,
@@ -71,6 +76,7 @@ return [
         'security_awareness' => 1,
         'business_process' => 4,
     ],
+    // qa_engineer: coding 3->4 (automation testing Cypress/Selenium, di bawah developer); business_process 4->3 (memvalidasi requirement, bukan merancang proses bisnis).
     'qa_engineer' => [
         'logic_problem_solving' => 4,
         'data_analysis' => 3,
@@ -80,11 +86,12 @@ return [
         'creativity' => 3,
         'user_empathy' => 4,
         'communication' => 4,
-        'coding' => 3,
+        'coding' => 4,
         'network_infra' => 1,
         'security_awareness' => 3,
-        'business_process' => 4,
+        'business_process' => 3,
     ],
+    // devops_engineer: communication 3->4 (budaya DevOps = kolaborasi tim Dev & Ops); coding 4->5 (Infrastructure as Code, scripting, pipeline CI/CD); security 4->3 (menerapkan praktik keamanan pipeline; spesialisasi di Cyber); business_process 3->2 (fokus operasional teknis).
     'devops_engineer' => [
         'logic_problem_solving' => 4,
         'data_analysis' => 3,
@@ -93,40 +100,43 @@ return [
         'visual_design' => 1,
         'creativity' => 3,
         'user_empathy' => 1,
-        'communication' => 3,
-        'coding' => 4,
+        'communication' => 4,
+        'coding' => 5,
         'network_infra' => 5,
-        'security_awareness' => 4,
-        'business_process' => 3,
+        'security_awareness' => 3,
+        'business_process' => 2,
     ],
+    // network_engineer: math_statistics 2->3 (subnetting, perhitungan bandwidth & kapasitas); communication 3->4 (koordinasi vendor/ISP & pengguna saat troubleshooting); coding 3->2 (konfigurasi perangkat via CLI; scripting bukan inti); security 4->3 (firewall/ACL dasar; analisis ancaman wilayah Cyber).
     'network_engineer' => [
         'logic_problem_solving' => 4,
         'data_analysis' => 2,
-        'math_statistics' => 2,
+        'math_statistics' => 3,
         'attention_detail' => 5,
         'visual_design' => 1,
         'creativity' => 3,
         'user_empathy' => 2,
-        'communication' => 3,
-        'coding' => 3,
+        'communication' => 4,
+        'coding' => 2,
         'network_infra' => 5,
-        'security_awareness' => 4,
+        'security_awareness' => 3,
         'business_process' => 3,
     ],
+    // cybersecurity_analyst: logic 4->5 (analisis ancaman, investigasi insiden, forensik); data_analysis 3->4 (analisis log & SIEM); coding 3->2 (analis SOC dominan memakai tools, bukan menulis kode); network_infra 4->3 (memahami jaringan, tidak merancang/mengelolanya).
     'cybersecurity_analyst' => [
-        'logic_problem_solving' => 4,
-        'data_analysis' => 3,
+        'logic_problem_solving' => 5,
+        'data_analysis' => 4,
         'math_statistics' => 2,
         'attention_detail' => 5,
         'visual_design' => 1,
         'creativity' => 3,
         'user_empathy' => 1,
         'communication' => 3,
-        'coding' => 3,
-        'network_infra' => 4,
+        'coding' => 2,
+        'network_infra' => 3,
         'security_awareness' => 5,
         'business_process' => 3,
     ],
+    // system_analyst: tidak berubah.
     'system_analyst' => [
         'logic_problem_solving' => 4,
         'data_analysis' => 3,

@@ -139,3 +139,30 @@ Format: `D-xx` — keputusan, opsi, rekomendasi/status.
 ## D-23 CTA landing sementara
 - Keputusan final: sebelum questionnaire tersedia, CTA utama landing mengarah ke anchor `#cara-kerja`, bukan route fiktif.
 - Status: disetujui.
+
+## D-23 Matriks profil revisi (berbasis kesehatan matriks)
+- Keputusan final: matriks profil karier direvisi berdasarkan analisis kesehatan matriks (robustness, margin self-consistency, jarak Euclidean). Metode SAW tidak berubah (D-01 tetap). Status: disetujui.
+- Tabel perubahan sel:
+
+| Karier | Kriteria | Lama→Baru | Alasan domain |
+|---|---|---|---|
+| web | logic | 3→4 | Logika state/alur aplikasi setara developer lain |
+| web | visual_design | 3→2 | Mengimplementasikan desain, bukan merancang (peran UI/UX) |
+| web | user_empathy | 4→3 | Interaksi pengguna umumnya melalui desainer/PM |
+| web | security | 2→3 | Wajib paham OWASP Top 10 (XSS, CSRF, autentikasi) |
+| backend | security | 4→5 | Garis depan autentikasi, enkripsi, proteksi data & API |
+| backend | business_process | 3→2 | Mengimplementasikan aturan bisnis, bukan merumuskannya |
+| qa | coding | 3→4 | Automation testing (Cypress/Selenium), di bawah developer |
+| qa | business_process | 4→3 | Memvalidasi requirement, bukan merancang proses bisnis |
+| devops | communication | 3→4 | Budaya DevOps = kolaborasi tim Dev & Ops |
+| devops | coding | 4→5 | Infrastructure as Code, scripting, pipeline CI/CD |
+| devops | security | 4→3 | Menerapkan praktik keamanan pipeline; spesialisasi di Cyber |
+| devops | business_process | 3→2 | Fokus operasional teknis |
+| network | math_statistics | 2→3 | Subnetting, perhitungan bandwidth & kapasitas |
+| network | communication | 3→4 | Koordinasi vendor/ISP & pengguna saat troubleshooting |
+| network | coding | 3→2 | Konfigurasi perangkat via CLI; scripting bukan inti |
+| network | security | 4→3 | Firewall/ACL dasar; analisis ancaman wilayah Cyber |
+| cyber | logic | 4→5 | Analisis ancaman, investigasi insiden, forensik |
+| cyber | data_analysis | 3→4 | Analisis log & SIEM |
+| cyber | coding | 3→2 | Analis SOC dominan memakai tools, bukan menulis kode |
+| cyber | network_infra | 4→3 | Memahami jaringan, tidak merancang/mengelolanya |

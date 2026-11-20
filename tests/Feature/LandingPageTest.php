@@ -25,8 +25,10 @@ class LandingPageTest extends TestCase
     {
         $response = $this->get('/');
 
-        $response->assertSee('TechMind');
-        $response->assertSee('Kenali potensimu');
-        $response->assertSee('Cara kerja TechMind');
+        $response->assertOk();
+        $response->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('public/landing')
+            ->where('name', 'TechMind')
+        );
     }
 }

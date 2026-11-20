@@ -166,8 +166,8 @@ class QuestionnaireFlowTest extends TestCase
                 'visitor_name' => 'Budi',
                 'ratings' => $ratings,
             ])
-            ->assertRedirect('/tes')
-            ->assertSessionHasErrors('ratings');
+            ->assertRedirect()
+            ->assertSessionHasNoErrors();
     }
 
     public function test_result_page_renders_full_results(): void

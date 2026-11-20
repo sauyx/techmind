@@ -55,13 +55,26 @@ class ResultPresentationService
             ];
         }
 
-        $results = $session->results->map(function ($result) use ($criteriaNames) {
+        $resultScores = $session->results->map(fn ($result) => (float) $result->saw_score)->all();
+
+        $results = $session->results->map(function ($result) use ($criteriaNames, $resultScores) {
+            $score = (float) $result->saw_score;
+            $sameCount = 0;
+            foreach ($resultScores as $otherScore) {
+                if (abs($otherScore - $score) < 1e-9) {
+                    $sameCount++;
+                }
+            }
+            $isTied = $sameCount > 1;
+
             return [
                 'id' => (int) $result->id,
                 'rank' => (int) $result->rank,
+                'rank_label' => $isTied ? '#'.(int) $result->rank.' (setara)' : '#'.(int) $result->rank,
+                'is_tied' => $isTied,
                 'career_code' => (string) $result->career_code,
                 'career_name' => (string) $result->career_name,
-                'saw_score' => (float) $result->saw_score,
+                'saw_score' => $score,
                 'match_percentage' => (string) $result->match_percentage,
                 'contribution_breakdown' => $result->contribution_breakdown ?? [],
                 'gap_summary' => $this->buildNaturalGapSummary($result->gap_summary, $criteriaNames),

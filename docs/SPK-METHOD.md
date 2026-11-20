@@ -127,24 +127,34 @@ Status: DATA AWAL, belum tervalidasi.
 9. System Analyst
 10. Backend Developer
 
-## 6. Matriks Profil Karier (skor ideal 1-5) — Sesi 3 (D-19)
+## 6. Matriks Profil Karier (skor ideal 1-5) — Revisi D-23
 
-Status: DATA AWAL, belum tervalidasi. Total tiap karier = 37 (invarian desain).
+Status: DATA AWAL berbasis penalaran domain, belum divalidasi pakar. Total tiap karier = 37 (invarian D-19). Revisi berdasarkan analisis kesehatan matriks (D-23); rumus SAW tidak berubah.
 
 Kolom: C1 logic_problem_solving, C2 data_analysis, C3 math_statistics, C4 attention_detail, C5 visual_design, C6 creativity, C7 user_empathy, C8 communication, C9 coding, C10 network_infra, C11 security_awareness, C12 business_process.
 
 | Karier | C1 | C2 | C3 | C4 | C5 | C6 | C7 | C8 | C9 | C10 | C11 | C12 | Total |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| Web Developer | 3 | 2 | 1 | 3 | 3 | 4 | 4 | 4 | 5 | 2 | 2 | 4 | 37 |
+| Web Developer | 4 | 2 | 1 | 3 | 2 | 4 | 3 | 4 | 5 | 2 | 3 | 4 | 37 |
 | Mobile Developer | 4 | 2 | 2 | 4 | 4 | 3 | 3 | 2 | 5 | 1 | 4 | 3 | 37 |
-| Backend Developer | 5 | 3 | 3 | 4 | 1 | 2 | 1 | 2 | 5 | 4 | 4 | 3 | 37 |
+| Backend Developer | 5 | 3 | 3 | 4 | 1 | 2 | 1 | 2 | 5 | 4 | 5 | 2 | 37 |
 | Data Analyst | 4 | 5 | 5 | 3 | 2 | 3 | 2 | 4 | 3 | 1 | 2 | 3 | 37 |
 | UI/UX Designer | 3 | 3 | 1 | 3 | 5 | 5 | 5 | 4 | 2 | 1 | 1 | 4 | 37 |
-| QA Engineer | 4 | 3 | 1 | 5 | 2 | 3 | 4 | 4 | 3 | 1 | 3 | 4 | 37 |
-| DevOps Engineer | 4 | 3 | 2 | 4 | 1 | 3 | 1 | 3 | 4 | 5 | 4 | 3 | 37 |
-| Network Engineer | 4 | 2 | 2 | 5 | 1 | 3 | 2 | 3 | 3 | 5 | 4 | 3 | 37 |
-| Cybersecurity Analyst | 4 | 3 | 2 | 5 | 1 | 3 | 1 | 3 | 3 | 4 | 5 | 3 | 37 |
+| QA Engineer | 4 | 3 | 1 | 5 | 2 | 3 | 4 | 4 | 4 | 1 | 3 | 3 | 37 |
+| DevOps Engineer | 4 | 3 | 2 | 4 | 1 | 3 | 1 | 4 | 5 | 5 | 3 | 2 | 37 |
+| Network Engineer | 4 | 2 | 3 | 5 | 1 | 3 | 2 | 4 | 2 | 5 | 3 | 3 | 37 |
+| Cybersecurity Analyst | 5 | 4 | 2 | 5 | 1 | 3 | 1 | 3 | 2 | 3 | 5 | 3 | 37 |
 | System Analyst | 4 | 3 | 2 | 4 | 2 | 3 | 5 | 5 | 1 | 1 | 2 | 5 | 37 |
+
+## 6a. Pengujian Kesehatan Matriks
+
+Metrik (lihat `app/Services/Spk/MatrixHealthAnalyzer.php`):
+- Self-consistency: input = profil karier → karier tsb wajib #1, margin ≥ 2.0 (poin).
+- Robustness: rating = profil + noise {-1,0,+1} (clip 1-5), 2000 sampel, seed 42 → tiap karier ≥ 80% jadi #1 tanpa seri (margin > 1e-9).
+- Nearest neighbors: jarak Euclidean antar profil → jarak terdekat ≥ 3.0.
+- Tie cases: rating seragam (1,3,5) dan satu-kriteria-tinggi (12 kasus).
+
+Hasil pada matriks D-23: self-consistency semua rank 1, margin min 2.16 (web_developer, devops_engineer); robustness min 81.05% (qa_engineer); jarak terdekat 3.162 (web_developer↔qa_engineer). Matriks lulus ambang `MatrixHealthTest`.
 
 ## 7b. Perubahan dari Versi Sesi 3 (D-22)
 

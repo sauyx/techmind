@@ -112,6 +112,14 @@ export default function PublicTest({ criteria }: Props) {
     }
 
     function submit() {
+        if (lowVariance) {
+            const confirmed = window.confirm(
+                'Semua jawaban Anda bernilai sama. Hasil rekomendasi mungkin kurang akurat. Lanjutkan submit?',
+            );
+            if (!confirmed) {
+                return;
+            }
+        }
         post(store.url());
     }
 
@@ -367,9 +375,7 @@ export default function PublicTest({ criteria }: Props) {
                                         type="button"
                                         onClick={submit}
                                         disabled={
-                                            !currentComplete ||
-                                            lowVariance ||
-                                            processing
+                                            !currentComplete || processing
                                         }
                                     >
                                         {processing
