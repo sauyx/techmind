@@ -8,6 +8,7 @@ type Criterion = {
     code: string;
     name: string;
     description: string | null;
+    development_hint: string | null;
     weight: number;
     step_group: number;
     display_order: number;
@@ -159,6 +160,7 @@ function CriterionRow({
     const form = useForm({
         name: criterion.name,
         description: criterion.description ?? '',
+        development_hint: criterion.development_hint ?? '',
         weight: criterion.weight,
         step_group: criterion.step_group,
         display_order: criterion.display_order,
@@ -291,6 +293,29 @@ function CriterionRow({
                 {form.errors.description ? (
                     <p className="mt-1 text-xs text-red-600">
                         {form.errors.description}
+                    </p>
+                ) : null}
+            </div>
+
+            <div>
+                <label
+                    className="text-sm font-medium text-zinc-950"
+                    htmlFor={`hint-${criterion.id}`}
+                >
+                    Hint pengembangan
+                </label>
+                <input
+                    id={`hint-${criterion.id}`}
+                    maxLength={150}
+                    value={form.data.development_hint}
+                    onChange={(event) =>
+                        form.setData('development_hint', event.target.value)
+                    }
+                    className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm text-zinc-950 outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                />
+                {form.errors.development_hint ? (
+                    <p className="mt-1 text-xs text-red-600">
+                        {form.errors.development_hint}
                     </p>
                 ) : null}
             </div>
