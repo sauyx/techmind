@@ -3,6 +3,7 @@
 namespace App\Services\Ai;
 
 use App\Contracts\AiExplainerInterface;
+use App\Contracts\CriterionRepository;
 use App\Data\AiExplanationResult;
 use App\Models\TestSession;
 
@@ -10,20 +11,10 @@ final class TemplateAiExplainer implements AiExplainerInterface
 {
     public function explain(TestSession $session): AiExplanationResult
     {
-        $payloadBuilder = new ExplanationPayloadBuilder;
+        $payloadBuilder = new ExplanationPayloadBuilder();
         $payload = $payloadBuilder->build($session);
-        $topResults = $session->results->take(3);
-        $ratings = [];
-        $criterionNames = [];
 
-        foreach ($session->answers as $answer) {
-            $code = (string) $answer->criterion_code;
-            $ratings[$code] = (int) $answer->rating;
-            $criterionNames[$code] = (string) $answer->criterion_name;
-        }
-
-        $paragraphs = [];
-
+        $topResults = $session->results->take(3)->values();
         if ($topResults->isEmpty()) {
             return new AiExplanationResult(
                 'Hasil analisis belum tersedia karena sesi tes ini belum memiliki data peringkat yang tersimpan.',
@@ -34,109 +25,145 @@ final class TemplateAiExplainer implements AiExplainerInterface
             );
         }
 
-        $top = $topResults->first();
-        $topScore = (float) ($top?->saw_score ?? 0.0);
-        $tiedTop = $session->results
-            ->filter(fn ($result) => abs((float) $result->saw_score - $topScore) < 1e-9)
-            ->values();
-        $isTiedTop = $tiedTop->count() > 1;
-        $tiedTopNames = $tiedTop->pluck('career_name')->all();
-
-        $strengths = array_column($top->gap_summary['strengths'] ?? [], 'criterion_code');
-        $needs = array_column($top->gap_summary['needs_strengthening'] ?? [], 'criterion_code');
-        $underused = array_column($top->gap_summary['underused'] ?? [], 'criterion_code');
-
-        $strengthNames = array_map(fn ($code) => $criterionNames[$code] ?? $code, $strengths);
-        $needNames = array_map(fn ($code) => $criterionNames[$code] ?? $code, $needs);
-        $underusedNames = array_map(fn ($code) => $criterionNames[$code] ?? $code, $underused);
-
-        if ($isTiedTop) {
-            $opening = 'Beberapa karier memiliki tingkat kecocokan yang sama, yaitu '.implode(', ', $tiedTopNames).'. ';
-            $opening .= 'Jawaban Anda cenderung merata, sehingga sistem belum bisa membedakan dengan jelas. ';
-        } else {
-            $opening = $top->career_name.' memiliki skor kecocokan tertinggi, yaitu '.$top->match_percentage.'%. ';
-        }
-        if ($strengthNames !== []) {
-            $opening .= 'Kekuatan utama Anda terlihat pada '.implode(', ', $strengthNames).', yang berarti pola jawaban Anda cukup selaras dengan profil karier tersebut. ';
-        } else {
-            $opening .= 'Belum ada kekuatan jawaban Anda yang menonjol pada kriteria utama karier ini, sehingga masih ada ruang untuk menjelajahi minat lebih dalam. ';
-        }
-
-        $development = 'Selanjutnya, perhatikan area yang perlu diperkuat. ';
-        if ($needNames !== []) {
-            $development .= 'Berdasarkan snapshot jawaban, '.implode(', ', $needNames).' masih berada di bawah kebutuhan profil ideal karier ini; Anda dapat memulainya dengan kursus dasar atau proyek kecil yang terukur. ';
-        } else {
-            $development .= 'Tidak ada gap besar yang terdeteksi antara jawaban Anda dan profil ideal karier ini, jadi fokuslah pada konsistensi belajar dan portofolio. ';
-        }
-
-        if ($underusedNames !== []) {
-            $development .= 'Perlu diingat, potensi '.implode(', ', $underusedNames).' Anda mungkin belum banyak digunakan pada jalur ini, sehingga cocok dipertahankan sebagai keunggulan tambahan. ';
-        }
-
-        $alternatives = $topResults->skip(1)->map(fn ($item) => $item->career_name.' ('.$item->match_percentage.'%)')->implode(' dan ');
-        if ($isTiedTop) {
-            $closing = 'Karier-karier yang setara di atas layak Anda pertimbangkan bersama. Kesimpulan ini bersifat relatif; untuk hasil yang lebih tajam, ulangi tes dan berikan penilaian yang lebih tegas pada hal yang benar-benar Anda minati atau tidak minati.';
-        } else {
-            $closing = 'Peringkat kedua dan ketiga yang juga layak Anda pertimbangkan adalah '.$alternatives.'. Kesimpulan ini bersifat relatif dan sebaiknya digunakan sebagai titik awal eksplorasi, bukan keputusan akhir.';
-        }
+        $topCareers = (array) ($payload['top_careers'] ?? []);
+        $topCareer = $topCareers[0] ?? [];
+        $topName = (string) ($topCareer['name'] ?? $topResults->first()?->career_name ?? '');
+        $topPct = (string) ($topCareer['match_percentage'] ?? $topResults->first()?->match_percentage ?? '');
+        $summary = (string) ($topCareer['summary'] ?? '');
+        $skills = (array) ($topCareer['skills'] ?? []);
+        $roadmap = (array) ($topCareer['roadmap_awal'] ?? []);
 
         $isTiedTop = (bool) ($payload['is_tied_top'] ?? false);
         $tiedNames = (array) ($payload['tied_careers'] ?? []);
-        $topCareers = (array) ($payload['top_careers'] ?? []);
-        $topName = (string) ($topCareers[0]['name'] ?? ($topResults->first()?->career_name ?? ''));
-        $topPct = (string) ($topCareers[0]['match_percentage'] ?? ($topResults->first()?->match_percentage ?? ''));
-        $strengths = (array) ($payload['kekuatan_pengguna'] ?? []);
-        $development = (array) ($payload['area_pengembangan'] ?? []);
+        $allResultsCount = $session->results->count();
+        $tiedCount = count($tiedNames);
+        $seriSemua = $isTiedTop && $tiedCount > 0 && $tiedCount === $allResultsCount;
 
-        $variantIndex = hexdec(substr(hash('sha256', (string) $session->token), 0, 8)) % 2;
-        $openingVariants = [
-            'memiliki skor kecocokan tertinggi',
-            'menempati peringkat teratas dengan skor kecocokan',
-        ];
-        $ringkasan = $isTiedTop
-            ? 'Beberapa karier memiliki tingkat kecocokan yang sama, yaitu '.implode(', ', $tiedNames).'. Jawaban Anda cenderung merata, sehingga sistem belum bisa membedakan dengan jelas.'
-            : $topName.' '.$openingVariants[$variantIndex].' yaitu '.$topPct.'%. Hasil ini merupakan rekomendasi awal untuk eksplorasi, bukan keputusan akhir.';
+        $kekuatan = (array) ($payload['kekuatan_pengguna'] ?? []);
+        $area = (array) ($payload['area_pengembangan'] ?? []);
+        $kontribusi = (array) ($payload['kontribusi_teratas'] ?? []);
+        $jawaban = (array) ($payload['jawaban'] ?? []);
 
-        $alasan = [];
-        if ($strengths !== []) {
-            $strengthText = 'Kekuatan utama Anda terlihat pada '.implode(', ', array_slice($strengths, 0, 3)).', yang selaras dengan profil karier teratas.';
-            $strengthTextVariants = [
-                $strengthText,
-                'Profil Anda kuat pada '.implode(', ', array_slice($strengths, 0, 3)).', sehingga berkaitan erat dengan kebutuhan karier teratas.',
+        $hash = hexdec(substr(hash('sha256', (string) $session->token), 0, 8));
+        $variant = $hash % 3;
+
+        $criteriaRepo = app(CriterionRepository::class);
+        $criteriaByCode = [];
+        foreach ($criteriaRepo->activeOrdered() as $criterion) {
+            $criteriaByCode[(string) $criterion->code] = $criterion;
+        }
+        $nameToCode = [];
+        foreach ($session->answers as $answer) {
+            $nameToCode[(string) $answer->criterion_name] = (string) $answer->criterion_code;
+        }
+
+        if ($seriSemua) {
+            $ringkasan = 'Semua karier memiliki tingkat kecocokan yang sama karena jawaban Anda bernilai merata, sehingga sistem belum bisa menentukan arah yang paling sesuai.';
+            $alasan = [
+                'Jawaban Anda cenderung merata di semua kriteria, sehingga tidak ada kriteria yang menonjol.',
+                'Tanpa perbedaan yang jelas, sistem SAW memberi skor yang sama untuk setiap karier.',
             ];
-            $alasan[] = $strengthTextVariants[$variantIndex];
-        } else {
-            $alasan[] = 'Belum ada kekuatan jawaban yang menonjol pada kriteria utama karier ini.';
-        }
-
-        $area = $development !== [] ? array_slice($development, 0, 2) : [];
-
-        $langkah = [];
-        $roadmap = $topCareers[0]['roadmap_awal'] ?? [];
-        $skills = $topCareers[0]['skills'] ?? [];
-        if ($skills !== []) {
-            $langkah[] = 'Pelajari dasar '.implode(', ', array_slice($skills, 0, 3)).' melalui kursus singkat.';
-        }
-        if ($roadmap !== []) {
-            $langkah[] = 'Ikuti langkah awal: '.implode(', ', array_slice($roadmap, 0, 2)).'.';
-        }
-        if ($langkah === []) {
-            $langkah[] = 'Mulai dengan proyek kecil untuk menguji minat Anda.';
-        }
-
-        $alternatif = $topResults->skip(1)->count() > 0
-            ? 'Peringkat berikutnya yang layak dipertimbangkan adalah '.$topResults->skip(1)->map(fn ($item) => $item->career_name.' ('.$item->match_percentage.'%)')->implode(' dan ').'.'
-            : 'Kesimpulan ini bersifat relatif.';
-
-        if ($isTiedTop) {
+            $areaOut = [];
+            $langkah = [
+                'Ulangi tes dan beri nilai 4–5 hanya pada aktivitas yang benar-benar Anda nikmati.',
+                'Beri nilai 1–2 pada aktivitas yang kurang Anda minati, agar perbedaannya terlihat.',
+                'Baca deskripsi setiap karier di halaman ini dan tandai yang paling membuat Anda penasaran.',
+            ];
             $alternatif = 'Karier-karier yang setara di atas layak Anda pertimbangkan bersama. Untuk hasil yang lebih tajam, ulangi tes dengan penilaian yang lebih tegas.';
+        } elseif ($isTiedTop) {
+            $ringkasan = 'Beberapa karier memiliki tingkat kecocokan yang sama, yaitu '.implode(', ', $tiedNames).', dengan tingkat kecocokan '.$topPct.'%. Hasil ini adalah rekomendasi awal untuk eksplorasi, bukan keputusan akhir.';
+            $alasan = $kekuatan !== []
+                ? array_map(fn ($name) => 'Anda menilai diri tinggi pada '.$name.' ('.($jawaban[$name] ?? '').'/5), dan kemampuan ini mendukung karier-karier yang setara di atas.', array_slice($kekuatan, 0, 3))
+                : [
+                    'Jawaban Anda cenderung merata pada beberapa kriteria utama, sehingga beberapa karier memperoleh skor yang sama.',
+                    'Perbedaan kecil antar kriteria membuat sistem belum bisa menentukan satu karier unggulan.',
+                ];
+            if (count($alasan) < 2) {
+                $alasan[] = 'Perbedaan kecil antar kriteria membuat sistem belum bisa menentukan satu karier unggulan.';
+            }
+            $areaOut = [];
+            $langkah = [];
+            $tiedCareerModels = [];
+            foreach ($topCareers as $tc) {
+                if (in_array($tc['name'], $tiedNames, true)) {
+                    $tiedCareerModels[] = $tc;
+                }
+            }
+            foreach (array_slice($tiedCareerModels, 0, 3) as $tc) {
+                $firstStep = $tc['roadmap_awal'][0] ?? '';
+                if ($firstStep !== '') {
+                    $langkah[] = 'Untuk '.$tc['name'].', mulai dari '.$firstStep.'.';
+                }
+            }
+            if (count($langkah) < 2) {
+                $langkah[] = 'Bandingkan langkah pertama setiap karier yang setara dan pilih yang paling menarik.';
+            }
+            $langkah[] = 'Pilih karier yang paling menarik bagi Anda dan dalami langkah pertamanya.';
+            $alternatif = 'Karier-karier yang setara di atas layak Anda pertimbangkan bersama. Untuk hasil yang lebih tajam, ulangi tes dengan penilaian yang lebih tegas.';
+        } else {
+            $ringkasan = $topName.' menjadi karier yang paling sesuai dengan profil Anda, dengan tingkat kecocokan '.$topPct.'%.';
+            if ($summary !== '') {
+                $ringkasan .= ' '.$summary;
+            }
+            $ringkasan .= ' Hasil ini adalah rekomendasi awal untuk eksplorasi, bukan keputusan akhir.';
+
+            $alasan = [];
+            foreach (array_slice($kekuatan, 0, 3) as $name) {
+                $rating = $jawaban[$name] ?? '';
+                $alasan[] = 'Anda menilai diri tinggi pada '.$name.' ('.$rating.'/5), dan kemampuan ini termasuk inti pekerjaan seorang '.$topName.'.';
+            }
+            if (count($alasan) < 2) {
+                foreach (array_slice($kontribusi, 0, 3) as $item) {
+                    if (count($alasan) >= 3) {
+                        break;
+                    }
+                    $kriteria = (string) ($item['kriteria'] ?? '');
+                    $ratingAnda = (string) ($item['rating_anda'] ?? '');
+                    $profil = (string) ($item['profil_karier'] ?? '');
+                    if ($kriteria !== '') {
+                        $alasan[] = 'Kontribusi terbesar pada skor karier ini berasal dari '.$kriteria.' (rating Anda '.$ratingAnda.'/5, profil karier '.$profil.'/5).';
+                    }
+                }
+            }
+            if (count($alasan) < 2) {
+                $alasan[] = 'Profil jawaban Anda cukup selaras dengan kebutuhan karier '.$topName.'.';
+            }
+
+            $areaOut = [];
+            foreach (array_slice($area, 0, 2) as $name) {
+                $code = $nameToCode[$name] ?? '';
+                $criterion = $criteriaByCode[$code] ?? null;
+                $context = $criterion && ! empty($criterion->description)
+                    ? (string) $criterion->description
+                    : 'memperkuat area ini';
+                $areaOut[] = $name.' masih bisa ditingkatkan; seorang '.$topName.' perlu '.$context.'.';
+            }
+
+            $patterns = [
+                fn (string $item) => 'Mulai dengan memahami '.$item.': konsep dasar dan contoh penerapannya.',
+                fn (string $item) => 'Luangkan 30 menit sehari untuk berlatih '.$item.' secara bertahap.',
+                fn (string $item) => 'Buat catatan singkat dari materi '.$item.' dan ulangi tiap minggu.',
+            ];
+            $langkah = [];
+            $items = $roadmap !== [] ? $roadmap : $skills;
+            foreach (array_slice($items, 0, 3) as $index => $item) {
+                $pattern = $patterns[($variant + $index) % count($patterns)];
+                $langkah[] = $pattern((string) $item);
+            }
+            if (count($langkah) < 2) {
+                $langkah[] = 'Cari satu sumber belajar dasar dan pelajari secara konsisten setiap minggu.';
+            }
+
+            $alternatif = $topResults->skip(1)->count() > 0
+                ? 'Peringkat berikutnya yang layak dipertimbangkan adalah '.$topResults->skip(1)->map(fn ($item) => $item->career_name.' ('.$item->match_percentage.'%)')->implode(' dan ').'.'
+                : 'Kesimpulan ini bersifat relatif.';
         }
 
         $json = [
             'ringkasan' => $ringkasan,
-            'alasan' => $alasan,
-            'area_pengembangan' => $area,
-            'langkah_awal' => $langkah,
+            'alasan' => array_slice($alasan, 0, 3),
+            'area_pengembangan' => array_slice($areaOut, 0, 2),
+            'langkah_awal' => array_slice($langkah, 0, 3),
             'alternatif' => $alternatif,
         ];
 

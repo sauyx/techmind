@@ -218,7 +218,7 @@ class AiExplanationTest extends TestCase
                 ->component('public/result')
                 ->loadDeferredProps(function (AssertableInertia $page) {
                     $page->has('ai_explanation')
-                        ->where('ai_explanation.content', fn ($value) => str_contains((string) $value, 'skor kecocokan'));
+                        ->where('ai_explanation.content', fn ($value) => str_contains((string) $value, 'kecocokan'));
                 })
             );
 
