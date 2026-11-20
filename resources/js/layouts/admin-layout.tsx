@@ -6,6 +6,7 @@ import {
     LogOut,
     Menu,
     QrCode,
+    Settings,
     SlidersHorizontal,
     X,
 } from 'lucide-react';
@@ -28,6 +29,7 @@ const navigation = [
         exact: false,
     },
     { href: '/admin/booth', label: 'QR & Booth', icon: QrCode, exact: false },
+    { href: '/settings/profile', label: 'Pengaturan Akun', icon: Settings, exact: false },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
