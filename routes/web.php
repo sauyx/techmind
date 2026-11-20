@@ -19,18 +19,18 @@ Route::get('/tes', [TestController::class, 'create'])
 
 Route::post('/tes', [TestController::class, 'store'])
     ->name('tests.store')
-    ->middleware('throttle:30,1');
+    ->middleware('throttle:tes-submit');
 
 Route::get('/hasil/{token}', [ResultController::class, 'show'])
     ->name('results.show');
 
 Route::get('/hasil/{token}/pdf', [ResultController::class, 'downloadPdf'])
     ->name('results.pdf')
-    ->middleware('throttle:20,1');
+    ->middleware('throttle:hasil-pdf');
 
 Route::post('/hasil/{token}/feedback', [ResultController::class, 'storeFeedback'])
     ->name('results.feedback')
-    ->middleware('throttle:20,1');
+    ->middleware('throttle:feedback');
 
 Route::middleware(['auth', 'verified', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
@@ -64,3 +64,4 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/settings.php';
+
