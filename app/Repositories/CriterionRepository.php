@@ -26,7 +26,7 @@ class CriterionRepository implements CriterionRepositoryContract
         return new Collection(array_map(
             function (array $attributes) {
                 $model = new Criterion;
-                $model->forceFill($attributes);
+                $model->setRawAttributes($attributes, true);
 
                 return $model;
             },

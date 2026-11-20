@@ -1,6 +1,17 @@
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import AdminLayout from '@/layouts/admin-layout';
 import { Button } from '@/components/ui/button';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 type Career = {
     id: number;
@@ -16,21 +27,97 @@ type Career = {
     is_validated: boolean;
     source_note: string | null;
     total_score: number;
+    profiles: Record<string, number>;
 };
+
+type Criterion = { id: number; code: string; name: string; display_order: number };
 
 type Props = {
     careers: Career[];
     standard_total_score: number;
     max_total_score: number;
+    criteria: Criterion[];
 };
 
 export default function CareersIndex({
     careers,
     standard_total_score,
     max_total_score,
+    criteria,
 }: Props) {
     const { flash } = usePage().props as {
         flash?: { success?: string | null };
+    };
+
+    const [open, setOpen] = useState(false);
+    const [toggleId, setToggleId] = useState<number | null>(null);
+    const [toggleTarget, setToggleTarget] = useState<Career | null>(null);
+    const [impact, setImpact] = useState<any>(null);
+    const [checkingImpact, setCheckingImpact] = useState(false);
+
+    const onToggle = (career: Career) => {
+        setToggleId(career.id);
+        setOpen(true);
+        void checkToggleImpact(career);
+    };
+
+    const onConfirm = () => {
+        if (toggleId !== null) {
+            router.patch(`/admin/careers/${toggleId}/toggle`);
+        }
+        setOpen(false);
+    };
+
+    const checkToggleImpact = async (career: Career) => {
+        setToggleTarget(career);
+        setCheckingImpact(true);
+        try {
+            const careersPayload = careers
+                .map((item) => {
+                    const scores: Record<string, number> = {};
+                    criteria.forEach((criterion) => {
+                        scores[criterion.code] = Number(
+                            item.profiles[String(criterion.id)] ?? 3,
+                        );
+                    });
+                    return {
+                        code: item.code,
+                        name: item.name,
+                        sort_order: item.sort_order,
+                        scores,
+                        is_active:
+                            item.id === career.id
+                                ? !item.is_active
+                                : item.is_active,
+                    };
+                })
+                .filter((item) => item.is_active);
+
+            const response = await fetch('/admin/kesehatan-matriks/preview', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN':
+                        document.querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') ?? '',
+                    Accept: 'application/json',
+                },
+                body: JSON.stringify({
+                    criteria: criteria.map((criterion) => ({
+                        code: criterion.code,
+                        multiplier: 1,
+                        sort_order: criterion.display_order,
+                        name: criterion.name,
+                    })),
+                    careers: careersPayload,
+                    samples: 300,
+                    seed: 42,
+                }),
+            });
+            setImpact(await response.json());
+        } finally {
+            setCheckingImpact(false);
+        }
     };
 
     return (
@@ -144,9 +231,7 @@ export default function CareersIndex({
                                                         variant="outline"
                                                         size="sm"
                                                         onClick={() =>
-                                                            router.patch(
-                                                                `/admin/careers/${career.id}/toggle`,
-                                                            )
+                                                            onToggle(career)
                                                         }
                                                     >
                                                         {career.is_active
@@ -172,6 +257,52 @@ export default function CareersIndex({
                             </table>
                         </div>
                     </section>
+
+                    <AlertDialog open={open} onOpenChange={setOpen}>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>
+                                    Konfirmasi Aksi
+                                </AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Apakah Anda yakin ingin{' '}
+                                    {toggleId !== null &&
+                                        (careers.find(
+                                            (career) => career.id === toggleId,
+                                        )?.is_active
+                                            ? 'menonaktifkan'
+                                            : 'mengaktifkan')}{' '}
+                                    karier ini?
+                                    {checkingImpact ? (
+                                        <p className="mt-2 animate-pulse text-sm text-zinc-500">
+                                            Memeriksa dampak perubahan...
+                                        </p>
+                                    ) : impact ? (
+                                        <div className={`mt-2 rounded-lg p-3 text-sm ${impact.healthy ? 'bg-emerald-50 text-emerald-800' : 'bg-red-50 text-red-800'}`}>
+                                            {impact.healthy ? 'Cek Dampak: matriks tetap sehat.' : 'Cek Dampak: toggle berisiko mengganggu kesehatan matriks.'}
+                                        </div>
+                                    ) : null}
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel
+                                    onClick={() => setOpen(false)}
+                                >
+                                    Batal
+                                </AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={onConfirm}
+                                    className="bg-red-500 hover:bg-red-600 focus:ring-red-500"
+                                >
+                                    Ya, {toggleId !== null && (careers.find(
+                                            (career) => career.id === toggleId,
+                                        )?.is_active
+                                            ? 'Nonaktifkan'
+                                            : 'Aktifkan')}
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
                 </div>
             </AdminLayout>
         </>

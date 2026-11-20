@@ -23,6 +23,7 @@ class CareerController extends Controller
             'careers' => $this->careers->list(),
             'standard_total_score' => $this->careers->standardTotalScore(),
             'max_total_score' => $this->careers->maxTotalScore(),
+            'criteria' => $this->careers->criteria(),
         ]);
     }
 

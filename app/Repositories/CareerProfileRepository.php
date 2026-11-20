@@ -56,12 +56,12 @@ class CareerProfileRepository implements CareerProfileRepositoryContract
 
         foreach ($cached as $item) {
             $profile = new CareerProfile;
-            $profile->forceFill($item['profile']);
+            $profile->setRawAttributes($item['profile'], true);
             if ($item['career'] !== null) {
-                $profile->setRelation('career', new Career($item['career']));
+                $career = new Career; $career->setRawAttributes($item['career'], true); $profile->setRelation('career', $career);
             }
             if ($item['criterion'] !== null) {
-                $profile->setRelation('criterion', new Criterion($item['criterion']));
+                $criterion = new Criterion; $criterion->setRawAttributes($item['criterion'], true); $profile->setRelation('criterion', $criterion);
             }
             $collection->push($profile);
         }
