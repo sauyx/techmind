@@ -189,7 +189,9 @@ class QuestionnaireFlowTest extends TestCase
             ->has('results', 10)
             ->has('criteria', 12)
             ->has('careers', 10)
-            ->has('ai_explanation')
+            ->loadDeferredProps(function (AssertableInertia $page) {
+                $page->has('ai_explanation');
+            })
         );
     }
 

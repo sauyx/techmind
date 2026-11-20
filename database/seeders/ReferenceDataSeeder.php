@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Contracts\CareerProfileRepository;
+use App\Contracts\CareerRepository;
+use App\Contracts\CriterionRepository;
 use App\Models\Career;
 use App\Models\CareerProfile;
 use App\Models\Criterion;
@@ -69,10 +72,10 @@ class ReferenceDataSeeder extends Seeder
             }
         }
         // Invalidate reference cache setelah data referensi berubah.
-        if (app()->bound(\App\Contracts\CriterionRepository::class)) {
-            app(\App\Contracts\CriterionRepository::class)->flushCache();
-            app(\App\Contracts\CareerRepository::class)->flushCache();
-            app(\App\Contracts\CareerProfileRepository::class)->flushCache();
+        if (app()->bound(CriterionRepository::class)) {
+            app(CriterionRepository::class)->flushCache();
+            app(CareerRepository::class)->flushCache();
+            app(CareerProfileRepository::class)->flushCache();
         }
 
     }

@@ -4,8 +4,8 @@ namespace App\Repositories;
 
 use App\Contracts\CriterionRepository as CriterionRepositoryContract;
 use App\Models\Criterion;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class CriterionRepository implements CriterionRepositoryContract
 {

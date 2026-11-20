@@ -4,8 +4,8 @@ namespace App\Repositories;
 
 use App\Contracts\CareerRepository as CareerRepositoryContract;
 use App\Models\Career;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 
 class CareerRepository implements CareerRepositoryContract
 {

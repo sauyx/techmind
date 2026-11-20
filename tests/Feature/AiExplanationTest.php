@@ -8,6 +8,7 @@ use Database\Seeders\ReferenceDataSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
+use Inertia\Testing\AssertableInertia;
 use Tests\TestCase;
 
 class AiExplanationTest extends TestCase
@@ -217,9 +218,9 @@ class AiExplanationTest extends TestCase
 
         $this->get('/hasil/'.$session->token)
             ->assertOk()
-            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('public/result')
-                ->loadDeferredProps(function (\Inertia\Testing\AssertableInertia $page) {
+                ->loadDeferredProps(function (AssertableInertia $page) {
                     $page->has('ai_explanation')
                         ->where('ai_explanation.content', fn ($value) => str_contains((string) $value, 'skor kecocokan'));
                 })
@@ -244,18 +245,18 @@ class AiExplanationTest extends TestCase
 
         $this->get('/hasil/'.$session->token)
             ->assertOk()
-            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('public/result')
-                ->loadDeferredProps(function (\Inertia\Testing\AssertableInertia $page) {
+                ->loadDeferredProps(function (AssertableInertia $page) {
                     $page->has('ai_explanation');
                 })
             );
 
         $this->get('/hasil/'.$session->token)
             ->assertOk()
-            ->assertInertia(fn (\Inertia\Testing\AssertableInertia $page) => $page
+            ->assertInertia(fn (AssertableInertia $page) => $page
                 ->component('public/result')
-                ->loadDeferredProps(function (\Inertia\Testing\AssertableInertia $page) {
+                ->loadDeferredProps(function (AssertableInertia $page) {
                     $page->has('ai_explanation');
                 })
             );
@@ -335,7 +336,7 @@ class AiExplanationTest extends TestCase
         ]);
 
         Http::fake(function () {
-            throw new \Illuminate\Http\Client\ConnectionException('Connection timed out');
+            throw new ConnectionException('Connection timed out');
         });
 
         $this->post('/tes', [

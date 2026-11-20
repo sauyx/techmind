@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Contracts\CriterionRepository;
 use App\Models\Criterion;
 use App\Services\Admin\CriteriaManagementService;
 use Database\Seeders\ReferenceDataSeeder;
@@ -20,7 +21,7 @@ class ReferenceCacheTest extends TestCase
         $service = app(CriteriaManagementService::class);
 
         // prime cache
-        $before = app(\App\Contracts\CriterionRepository::class)->activeOrdered()
+        $before = app(CriterionRepository::class)->activeOrdered()
             ->firstWhere('code', 'logic_problem_solving');
         $this->assertSame(1.0, (float) $before->weight);
 
@@ -33,7 +34,7 @@ class ReferenceCacheTest extends TestCase
             'is_active' => $criterion->is_active,
         ]);
 
-        $after = app(\App\Contracts\CriterionRepository::class)->activeOrdered()
+        $after = app(CriterionRepository::class)->activeOrdered()
             ->firstWhere('code', 'logic_problem_solving');
 
         $this->assertSame(1.5, (float) $after->weight);

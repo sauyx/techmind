@@ -5,6 +5,7 @@ namespace App\Services\Ai;
 use App\Contracts\AiExplainerInterface;
 use App\Data\AiExplanationResult;
 use App\Models\TestSession;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -74,10 +75,11 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
                     'max_tokens' => 350,
                     'temperature' => 0.4,
                 ]);
-            } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            } catch (ConnectionException $e) {
                 $this->lastError = $e->getMessage();
                 if ($attempt < 2) {
                     usleep(500000);
+
                     continue;
                 }
                 throw new RuntimeException('Koneksi AI gagal: '.$this->lastError);
@@ -93,6 +95,7 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
             if ($retryable && $attempt < 2) {
                 $this->lastError = 'HTTP '.$status;
                 usleep(500000);
+
                 continue;
             }
 

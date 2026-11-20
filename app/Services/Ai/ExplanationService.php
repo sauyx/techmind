@@ -6,7 +6,9 @@ use App\Contracts\AiExplanationRepository;
 use App\Data\AiExplanationResult;
 use App\Models\AiExplanation;
 use App\Models\TestSession;
+use Illuminate\Contracts\Cache\LockTimeoutException;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Throwable;
 
 final class ExplanationService
@@ -29,7 +31,7 @@ final class ExplanationService
 
         try {
             $lock->block(5);
-        } catch (\Illuminate\Contracts\Cache\LockTimeoutException) {
+        } catch (LockTimeoutException) {
             $existing = $this->explanations->findForSession($session);
             if ($existing) {
                 return $existing;
@@ -37,7 +39,7 @@ final class ExplanationService
         }
 
         try {
-        $existing = $this->explanations->findForSession($session);
+            $existing = $this->explanations->findForSession($session);
             if ($existing) {
                 return $existing;
             }
@@ -47,7 +49,7 @@ final class ExplanationService
             if ($driver === 'template' || config('techmind.ai.api_key') === '' || config('techmind.ai.api_key') === null) {
                 $result = $this->templateExplainer->explain($session);
                 $stored = $this->explanations->store($session, $result);
-                \Illuminate\Support\Facades\Log::channel('ai')->info('AI explanation generated', [
+                Log::channel('ai')->info('AI explanation generated', [
                     'token' => substr($session->token, 0, 8),
                     'driver' => $result->driverUsed,
                     'model' => $result->modelName,
@@ -77,7 +79,7 @@ final class ExplanationService
             }
 
             $stored = $this->explanations->store($session, $result);
-            \Illuminate\Support\Facades\Log::channel('ai')->info('AI explanation generated', [
+            Log::channel('ai')->info('AI explanation generated', [
                 'token' => substr($session->token, 0, 8),
                 'driver' => $result->driverUsed,
                 'model' => $result->modelName,

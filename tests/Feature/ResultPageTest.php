@@ -42,8 +42,10 @@ class ResultPageTest extends TestCase
             ->has('criteria', 12)
             ->has('careers', 10)
             ->has('ratings')
-            ->has('ai_explanation')
             ->has('results.0.gap_summary')
+            ->loadDeferredProps(function (AssertableInertia $page) {
+                $page->has('ai_explanation');
+            })
         );
     }
 
