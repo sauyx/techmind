@@ -2,8 +2,10 @@
 
 namespace App\Console\Commands;
 
-use App\Data\AiExplanationResult;
-use App\Models\AiExplanation;
+use App\Contracts\CareerRepository;
+use App\Contracts\CriterionRepository;
+use App\Models\TestAnswer;
+use App\Models\TestResult;
 use App\Models\TestSession;
 use App\Services\Ai\OpenAiCompatibleExplainer;
 use App\Services\Ai\TemplateAiExplainer;
@@ -21,7 +23,7 @@ class AiCheck extends Command
         $token = $this->option('token');
 
         if ($token) {
-            $session = \App\Models\TestSession::query()
+            $session = TestSession::query()
                 ->where('token', $token)
                 ->with(['answers', 'results'])
                 ->first();
@@ -87,12 +89,12 @@ class AiCheck extends Command
     {
         $session = new TestSession(['token' => 'ai-check-example', 'visitor_name' => 'AI Check']);
 
-        $criteria = app(\App\Contracts\CriterionRepository::class)->activeOrdered();
-        $careers = app(\App\Contracts\CareerRepository::class)->activeWithProfiles();
+        $criteria = app(CriterionRepository::class)->activeOrdered();
+        $careers = app(CareerRepository::class)->activeWithProfiles();
         $career = $careers->first();
 
-        $answers = new Collection();
-        $results = new Collection();
+        $answers = new Collection;
+        $results = new Collection;
 
         if ($career) {
             $scores = [];
@@ -104,7 +106,7 @@ class AiCheck extends Command
 
             foreach ($criteria as $criterion) {
                 $code = (string) $criterion->code;
-                $answer = new \App\Models\TestAnswer([
+                $answer = new TestAnswer([
                     'criterion_code' => $code,
                     'criterion_name' => (string) $criterion->name,
                     'rating' => (int) ($scores[$code] ?? 3),
@@ -112,7 +114,7 @@ class AiCheck extends Command
                 $answers->push($answer);
             }
 
-            $results->push(new \App\Models\TestResult([
+            $results->push(new TestResult([
                 'career_code' => (string) $career->code,
                 'career_name' => (string) $career->name,
                 'rank' => 1,

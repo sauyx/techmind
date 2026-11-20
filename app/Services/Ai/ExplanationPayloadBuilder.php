@@ -2,6 +2,7 @@
 
 namespace App\Services\Ai;
 
+use App\Models\Career;
 use App\Models\TestSession;
 
 class ExplanationPayloadBuilder
@@ -52,6 +53,7 @@ class ExplanationPayloadBuilder
 
         $topCareers = $topResults->map(function ($result) {
             $career = null;
+
             // find career detail from session? fallback minimal
             return [
                 'rank' => (int) $result->rank,
@@ -64,7 +66,7 @@ class ExplanationPayloadBuilder
         })->all();
 
         // enrich from careers table if possible
-        $careerModels = \App\Models\Career::query()
+        $careerModels = Career::query()
             ->whereIn('code', $topResults->pluck('career_code')->all())
             ->get()
             ->keyBy('code');

@@ -71,6 +71,7 @@ class MatrixHealthPreviewTest extends TestCase
                     $scores[(string) $profile->criterion->code] = (int) $profile->score;
                 }
             }
+
             return ['code' => $career->code, 'name' => $career->name, 'sort_order' => $career->sort_order, 'scores' => $scores];
         })->values()->all();
 

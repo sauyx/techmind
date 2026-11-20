@@ -16,6 +16,7 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
     public int $lastAttempts = 1;
 
     public ?string $lastError = null;
+
     public ?int $lastHttpStatus = null;
 
     public function explain(TestSession $session): AiExplanationResult
@@ -31,7 +32,7 @@ final class OpenAiCompatibleExplainer implements AiExplainerInterface
 
         $startedAt = microtime(true);
 
-        $payloadBuilder = new \App\Services\Ai\ExplanationPayloadBuilder();
+        $payloadBuilder = new ExplanationPayloadBuilder;
         $payload = $payloadBuilder->build($session);
         $system = @file_get_contents(base_path('resources/prompts/explanation_system.txt')) ?: '';
 

@@ -10,7 +10,7 @@ final class TemplateAiExplainer implements AiExplainerInterface
 {
     public function explain(TestSession $session): AiExplanationResult
     {
-        $payloadBuilder = new \App\Services\Ai\ExplanationPayloadBuilder();
+        $payloadBuilder = new ExplanationPayloadBuilder;
         $payload = $payloadBuilder->build($session);
         $topResults = $session->results->take(3);
         $ratings = [];
